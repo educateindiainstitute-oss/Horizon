@@ -238,18 +238,26 @@
                 <label>Axis Position</label>
                 <select id="inp-pos"><option value="top">Top (Dates/Subject)</option><option value="bottom">Bottom (Action/Output)</option></select>
             </div>
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button onclick="closeModal()" style="background:#f1f2f6; color:#333;">Cancel</button>
-                <button id="btn-save" onclick="saveEvent()" class="btn-add" style="font-size: 0.9rem; padding: 8px 16px;">Add to Horizon</button>
+            
+            <!-- Footer with Delete Option -->
+            <div style="display:flex; justify-content:space-between; margin-top:20px; align-items:center;">
+                <!-- Delete Button (Hidden by default) -->
+                <button id="btn-delete" onclick="deleteFromModal()" style="background:#ffebee; color:var(--danger); display:none; padding:8px 12px; font-size:0.8rem;">Delete</button>
+                
+                <div style="display:flex; gap:10px; margin-left:auto;">
+                    <button onclick="closeModal()" style="background:#f1f2f6; color:#333;">Cancel</button>
+                    <button id="btn-save" onclick="saveEvent()" class="btn-add" style="font-size: 0.9rem; padding: 8px 16px;">Add to Horizon</button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- FIREBASE SDKs & LOGIC -->
     <script type="module">
+        // Added initializeFirestore and memoryLocalCache imports for explicit non-persistence
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, query, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeFirestore, memoryLocalCache, collection, addDoc, updateDoc, query, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ==========================================================
         //  YOUR SPECIFIC CONFIGURATION (Integrated)
@@ -265,9 +273,15 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        
+        // STRICT REAL-TIME: Using memoryLocalCache explicitly disables IndexedDB persistence.
+        // This ensures the app always syncs from the server and doesn't rely on local disk cache.
+        const db = initializeFirestore(app, {
+            localCache: memoryLocalCache()
+        });
+
         let currentUser = null;
-        let localEvents = [];
+        let liveEvents = []; // Renamed from 'localEvents' to emphasize these are live from server
         let editingId = null; 
 
         // --- ZOOM VARIABLES ---
@@ -320,26 +334,28 @@
             } else {
                 currentUser = null;
                 authScreen.style.display = 'flex';
-                localEvents = [];
+                liveEvents = [];
                 renderEvents();
             }
         });
 
-        // ---------------- DATABASE LOGIC ----------------
+        // ---------------- DATABASE LOGIC (REAL TIME) ----------------
         
         function listenToEvents(uid) {
+            // onSnapshot triggers instantly on every change (Add/Edit/Delete) 
+            // from ANY device connected to this account.
             const q = query(collection(db, "users", uid, "events"));
             onSnapshot(q, (snapshot) => {
-                localEvents = [];
+                liveEvents = [];
                 snapshot.forEach((doc) => {
-                    localEvents.push({ id: doc.id, ...doc.data() });
+                    liveEvents.push({ id: doc.id, ...doc.data() });
                 });
                 renderEvents();
             });
         }
 
         window.editEvent = (id) => {
-            const ev = localEvents.find(e => e.id === id);
+            const ev = liveEvents.find(e => e.id === id);
             if (!ev) return;
 
             document.getElementById('inp-title').value = ev.title;
@@ -350,6 +366,10 @@
             editingId = id;
             document.getElementById('modal-title').innerText = "Edit Event";
             document.getElementById('btn-save').innerText = "Update Horizon";
+            
+            // Show Delete Button
+            document.getElementById('btn-delete').style.display = 'block';
+            
             document.getElementById('modal-overlay').style.display = 'flex';
         };
 
@@ -378,6 +398,16 @@
                 await deleteDoc(doc(db, "users", currentUser.uid, "events", id));
             }
         };
+        
+        // Delete from inside the modal
+        window.deleteFromModal = async () => {
+            if (editingId) {
+                if(confirm("Remove this event from your horizon?")) {
+                    await deleteDoc(doc(db, "users", currentUser.uid, "events", editingId));
+                    closeModal();
+                }
+            }
+        };
 
         window.renderEvents = () => {
             const canvas = document.getElementById('arrow-canvas');
@@ -386,11 +416,11 @@
             const old = document.querySelectorAll('.event-node');
             old.forEach(o => o.remove());
 
-            if (localEvents.length === 0) return;
+            if (liveEvents.length === 0) return;
 
-            localEvents.sort((a,b) => new Date(a.date) - new Date(b.date));
-            const startDate = new Date(localEvents[0].date).getTime();
-            const lastDate = new Date(localEvents[localEvents.length-1].date).getTime();
+            liveEvents.sort((a,b) => new Date(a.date) - new Date(b.date));
+            const startDate = new Date(liveEvents[0].date).getTime();
+            const lastDate = new Date(liveEvents[liveEvents.length-1].date).getTime();
             
             // Auto-scale based on screen width & ZOOM LEVEL
             const isMobile = window.innerWidth < 600;
@@ -402,12 +432,10 @@
             canvas.style.width = width + "px";
 
             // --- COLLISION DETECTION LANES ---
-            // Stores the right-most edge (pixel value) of the last item in each lane
-            // lanes[0] = rightEdgeOfTier0, lanes[1] = rightEdgeOfTier1, etc.
             const topLanes = []; 
             const bottomLanes = [];
 
-            localEvents.forEach(ev => {
+            liveEvents.forEach(ev => {
                 if ((ev.type === 'flag' || ev.type === 'cloud') && !showMajor) return;
 
                 const evTime = new Date(ev.date).getTime();
@@ -415,21 +443,16 @@
                 const left = (totalDays > 0) ? ((evTime - startDate) / 86400000 * pxPerDay) + leftOffset : leftOffset;
 
                 // Collision Logic
-                // We assume an event takes up roughly 140px (120px + padding)
-                // This is a heuristic since we can't measure text width easily before rendering
                 const nodeWidth = 140; 
                 const currentLeftEdge = left - (nodeWidth / 2);
                 
                 const lanes = ev.pos === 'top' ? topLanes : bottomLanes;
                 let laneIndex = 0;
 
-                // Find the first lane where the previous item ends BEFORE our current item starts
-                // We add a 10px buffer
                 while (lanes[laneIndex] !== undefined && lanes[laneIndex] > currentLeftEdge) {
                     laneIndex++;
                 }
                 
-                // Update this lane's right edge
                 lanes[laneIndex] = left + (nodeWidth / 2) + 10; 
 
                 // Calculate Vertical Offset based on Lane
@@ -447,7 +470,7 @@
                     if(e.ctrlKey || e.metaKey) { window.deleteEvent(ev.id); } 
                     else { window.editEvent(ev.id); }
                 };
-                node.title = "Click to Edit. Ctrl + Click to Delete.";
+                node.title = "Click to Edit.";
 
                 const dateStr = new Date(ev.date).toLocaleDateString('en-GB', {day:'numeric', month:'short'});
                 let html = '';
@@ -461,8 +484,6 @@
                 } else {
                     const content = `<div class="content-box"><span class="title-label">${ev.title}</span><br><span class="date-label">${dateStr}</span></div>`;
                     
-                    // For Normal items, we adjust tick height
-                    // The tick is just a connector line
                     if (ev.pos === 'top') {
                         html = `${content}<div class="tick" style="height:${totalHeight}px"></div>`;
                     } else {
@@ -483,17 +504,18 @@
             editingId = null; 
             document.getElementById('modal-title').innerText = "New Event";
             document.getElementById('btn-save').innerText = "Add to Horizon";
+            
+            // Hide Delete Button for new events
+            document.getElementById('btn-delete').style.display = 'none';
+            
             document.getElementById('modal-overlay').style.display = 'flex';
         };
 
         window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
 
         // --- ZOOM GESTURE LOGIC ---
-        
-        // 1. Start Pinch
         viewport.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
-                // Calculate initial distance between fingers
                 initialPinchDist = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
                     e.touches[0].pageY - e.touches[1].pageY
@@ -502,30 +524,22 @@
             }
         });
 
-        // 2. Move Pinch (Zoom)
         viewport.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2) {
-                e.preventDefault(); // Stop browser page zoom
-
+                e.preventDefault(); 
                 const dist = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
                     e.touches[0].pageY - e.touches[1].pageY
                 );
-
-                // Calculate scale change
                 const ratio = dist / initialPinchDist;
                 const newZoom = initialZoom * ratio;
-                
-                // Set limits (Infinite-ish: 0.1x to 50x)
                 zoomScale = Math.max(0.1, Math.min(newZoom, 50));
-                
                 renderEvents();
             }
         });
 
-        // Auto-resize on rotate/window change
         window.addEventListener('resize', () => {
-            if (localEvents.length > 0) renderEvents();
+            if (liveEvents.length > 0) renderEvents();
         });
 
     </script>
