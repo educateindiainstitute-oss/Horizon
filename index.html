@@ -105,8 +105,19 @@
             border-top: 10px solid transparent; border-bottom: 10px solid transparent; 
         }
 
-        .event-node { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; }
-        .event-node:hover { transform: translateX(-50%) scale(1.15); z-index: 20; }
+        /* --- EVENT NODES --- */
+        .event-node { 
+            position: absolute; 
+            /* Transformation origin is key for scaling from center/bottom */
+            transform-origin: center bottom;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            cursor: pointer; 
+            transition: transform 0.1s linear, left 0.1s linear; /* Fast transitions for zoom */
+            z-index: 10; 
+        }
+        .event-node:hover { z-index: 100 !important; filter: brightness(1.1); }
         
         .content-box {
             background: white; padding: 10px 18px; border-radius: 12px;
@@ -118,8 +129,9 @@
         .title-label { font-weight: 700; font-size: 0.95rem; color: var(--text); }
 
         /* Positioning Base Styles */
-        .pos-top { bottom: 50%; padding-bottom: 0; } /* Padding handled dynamically now */
-        .pos-bottom { top: 50%; padding-top: 0; }
+        /* Origin needs flip for top items */
+        .pos-top { bottom: 50%; transform-origin: center bottom; } 
+        .pos-bottom { top: 50%; transform-origin: center top; }
 
         .tick { width: 3px; background: #cbd5e0; margin: 0; }
         
@@ -130,7 +142,7 @@
         }
         .type-flag .date-label { color: rgba(255,255,255,0.8); }
         .type-flag .pole { width: 4px; background: var(--danger); margin: 0 auto; border-radius: 2px; }
-        .type-flag { top: 30%; transform: translateX(-10%); }
+        .type-flag { top: 30%; transform: translateX(-10%); transform-origin: center bottom; }
 
         .type-cloud .content-box {
             background: #fff8e1; border: 2px solid var(--stress); color: var(--stress);
@@ -254,7 +266,6 @@
 
     <!-- FIREBASE SDKs & LOGIC -->
     <script type="module">
-        // Added initializeFirestore and memoryLocalCache imports for explicit non-persistence
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { initializeFirestore, memoryLocalCache, collection, addDoc, updateDoc, query, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -274,20 +285,20 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // STRICT REAL-TIME: Using memoryLocalCache explicitly disables IndexedDB persistence.
-        // This ensures the app always syncs from the server and doesn't rely on local disk cache.
+        // STRICT REAL-TIME
         const db = initializeFirestore(app, {
             localCache: memoryLocalCache()
         });
 
         let currentUser = null;
-        let liveEvents = []; // Renamed from 'localEvents' to emphasize these are live from server
+        let liveEvents = []; 
         let editingId = null; 
 
         // --- ZOOM VARIABLES ---
         let zoomScale = 1.0;
         let initialPinchDist = 0;
         let initialZoom = 1.0;
+        let hasInitializedView = false; // Flag to track first load
         const viewport = document.getElementById('timeline-viewport');
 
         // ---------------- AUTHENTICATION ----------------
@@ -318,7 +329,10 @@
             }
         };
 
-        window.logout = () => signOut(auth);
+        window.logout = () => {
+            hasInitializedView = false; // Reset view on logout
+            signOut(auth);
+        };
 
         function cleanError(msg) {
             return msg.replace("Firebase: ", "").replace("auth/", "").replace(/-/g, " ");
@@ -339,11 +353,9 @@
             }
         });
 
-        // ---------------- DATABASE LOGIC (REAL TIME) ----------------
+        // ---------------- DATABASE LOGIC ----------------
         
         function listenToEvents(uid) {
-            // onSnapshot triggers instantly on every change (Add/Edit/Delete) 
-            // from ANY device connected to this account.
             const q = query(collection(db, "users", uid, "events"));
             onSnapshot(q, (snapshot) => {
                 liveEvents = [];
@@ -366,10 +378,7 @@
             editingId = id;
             document.getElementById('modal-title').innerText = "Edit Event";
             document.getElementById('btn-save').innerText = "Update Horizon";
-            
-            // Show Delete Button
             document.getElementById('btn-delete').style.display = 'block';
-            
             document.getElementById('modal-overlay').style.display = 'flex';
         };
 
@@ -399,7 +408,6 @@
             }
         };
         
-        // Delete from inside the modal
         window.deleteFromModal = async () => {
             if (editingId) {
                 if(confirm("Remove this event from your horizon?")) {
@@ -413,6 +421,7 @@
             const canvas = document.getElementById('arrow-canvas');
             const showMajor = document.getElementById('filter-major').checked;
             
+            // Cleanup old nodes
             const old = document.querySelectorAll('.event-node');
             old.forEach(o => o.remove());
 
@@ -421,17 +430,43 @@
             liveEvents.sort((a,b) => new Date(a.date) - new Date(b.date));
             const startDate = new Date(liveEvents[0].date).getTime();
             const lastDate = new Date(liveEvents[liveEvents.length-1].date).getTime();
-            
-            // Auto-scale based on screen width & ZOOM LEVEL
+            const totalDays = (lastDate - startDate) / 86400000; 
+
+            // --- AUTO FIT TO SCREEN (First Load) ---
+            if (!hasInitializedView && totalDays > 0) {
+                const screenWidth = window.innerWidth;
+                const requiredWidth = screenWidth - 100; // Buffer
+                const basePx = 5; // Standard px per day
+                // Calculate zoom needed to fit total days into screen width
+                // width = totalDays * basePx * zoom
+                // zoom = width / (totalDays * basePx)
+                const fitZoom = requiredWidth / (totalDays * basePx);
+                
+                // Set zoom but clamp it so it's not absurdly small
+                zoomScale = Math.min(1.0, Math.max(0.05, fitZoom));
+                hasInitializedView = true;
+            }
+
+            // --- CALCULATE DIMENSIONS ---
             const isMobile = window.innerWidth < 600;
             const basePx = isMobile ? 3 : 5;
-            const pxPerDay = basePx * zoomScale; // Apply Global Zoom
+            const pxPerDay = basePx * zoomScale;
             
-            const totalDays = (lastDate - startDate) / 86400000; 
-            const width = Math.max(window.innerWidth, (totalDays * pxPerDay) + (isMobile ? 200 : 500));
+            // Ensure width is at least screen width
+            const width = Math.max(window.innerWidth, (totalDays * pxPerDay) + (isMobile ? 100 : 200));
             canvas.style.width = width + "px";
 
+            // --- SEMANTIC SCALING (Miniature Size) ---
+            // As zoom gets smaller, nodeScale gets smaller to prevent overlap
+            // Range: 0.1 zoom -> 0.3 scale, 1.0 zoom -> 1.0 scale
+            let nodeScale = Math.min(1, Math.max(0.2, zoomScale * 1.5));
+            if (zoomScale < 0.2) nodeScale = 0.3; // Minimum visible size
+
             // --- COLLISION DETECTION LANES ---
+            // Adjust lane widths based on scaled node size
+            const nodeBaseWidth = 140; 
+            const scaledNodeWidth = nodeBaseWidth * nodeScale; 
+            
             const topLanes = []; 
             const bottomLanes = [];
 
@@ -443,9 +478,7 @@
                 const left = (totalDays > 0) ? ((evTime - startDate) / 86400000 * pxPerDay) + leftOffset : leftOffset;
 
                 // Collision Logic
-                const nodeWidth = 140; 
-                const currentLeftEdge = left - (nodeWidth / 2);
-                
+                const currentLeftEdge = left - (scaledNodeWidth / 2);
                 const lanes = ev.pos === 'top' ? topLanes : bottomLanes;
                 let laneIndex = 0;
 
@@ -453,11 +486,11 @@
                     laneIndex++;
                 }
                 
-                lanes[laneIndex] = left + (nodeWidth / 2) + 10; 
+                lanes[laneIndex] = left + (scaledNodeWidth / 2) + (10 * nodeScale); 
 
-                // Calculate Vertical Offset based on Lane
-                const baseHeight = 25; // Base connector height
-                const stepHeight = 65; // Each lane adds 65px height
+                // Stack Heights (Scaled)
+                const baseHeight = 25;
+                const stepHeight = 65 * nodeScale; 
                 const totalHeight = baseHeight + (laneIndex * stepHeight);
 
                 // Create Node
@@ -465,19 +498,20 @@
                 node.className = `event-node type-${ev.type} ${ev.pos === 'top' ? 'pos-top' : 'pos-bottom'}`;
                 node.style.left = left + "px";
                 
-                // --- CLICK & INTERACTION ---
+                // APPLY MINIATURE SCALING
+                node.style.transform = `translateX(-50%) scale(${nodeScale})`;
+                
+                // Interaction
                 node.onclick = (e) => { 
                     if(e.ctrlKey || e.metaKey) { window.deleteEvent(ev.id); } 
                     else { window.editEvent(ev.id); }
                 };
-                node.title = "Click to Edit.";
 
                 const dateStr = new Date(ev.date).toLocaleDateString('en-GB', {day:'numeric', month:'short'});
                 let html = '';
                 
                 if (ev.type === 'flag') {
-                    // Flags usually need to be tall. Let's add the lane offset to the pole height.
-                    const poleHeight = 120 + (laneIndex * stepHeight);
+                    const poleHeight = (120 * nodeScale) + (laneIndex * stepHeight);
                     html = `<div class="content-box"><span class="title-label">${ev.title}</span><br><span class="date-label">${dateStr}</span></div><div class="pole" style="height:${poleHeight}px"></div>`;
                 } else if (ev.type === 'cloud') {
                     html = `<div class="content-box"><span class="title-label">${ev.title}</span></div><div class="tick" style="height:${totalHeight}px"></div>`;
@@ -504,10 +538,7 @@
             editingId = null; 
             document.getElementById('modal-title').innerText = "New Event";
             document.getElementById('btn-save').innerText = "Add to Horizon";
-            
-            // Hide Delete Button for new events
             document.getElementById('btn-delete').style.display = 'none';
-            
             document.getElementById('modal-overlay').style.display = 'flex';
         };
 
@@ -516,10 +547,7 @@
         // --- ZOOM GESTURE LOGIC ---
         viewport.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
-                initialPinchDist = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY
-                );
+                initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                 initialZoom = zoomScale;
             }
         });
@@ -527,19 +555,20 @@
         viewport.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2) {
                 e.preventDefault(); 
-                const dist = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY
-                );
+                const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                 const ratio = dist / initialPinchDist;
                 const newZoom = initialZoom * ratio;
-                zoomScale = Math.max(0.1, Math.min(newZoom, 50));
+                zoomScale = Math.max(0.01, Math.min(newZoom, 50)); // Allow very small zoom
                 renderEvents();
             }
         });
 
         window.addEventListener('resize', () => {
-            if (liveEvents.length > 0) renderEvents();
+            if (liveEvents.length > 0) {
+                // Optional: Recalculate fit on resize? 
+                // Currently just re-renders with current zoom
+                renderEvents();
+            }
         });
 
     </script>
