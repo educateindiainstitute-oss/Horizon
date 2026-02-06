@@ -6,13 +6,12 @@
     <title>HORIZON | Strategic Life Planner</title>
     <style>
         :root {
-            /* Horizon Color Palette */
-            --primary: #4e54c8; /* Deep Horizon Blue */
-            --secondary: #8f94fb; /* Sky */
+            --primary: #4e54c8;
+            --secondary: #8f94fb;
             --danger: #ff5252;
-            --stress: #ff9800; /* Sunset Orange */
-            --footstep: #7f8c8d; /* Grey for daily steps */
-            --milestone: #00b894; /* Teal for milestones */
+            --stress: #ff9800;
+            --footstep: #7f8c8d;
+            --milestone: #00b894;
             --bg: #f8f9fa;
             --surface: #ffffff;
             --text: #2c3e50;
@@ -21,160 +20,107 @@
         body { 
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
             background-color: var(--bg); 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            overflow: hidden; 
-            color: var(--text); 
-            touch-action: none; 
+            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
+            color: var(--text); touch-action: none; 
         }
 
-        /* --- AUTH SCREEN --- */
+        /* --- UI COMPONENTS --- */
         #auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to right, #4e54c8, #8f94fb);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
-            padding: 20px; box-sizing: border-box;
+            display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px;
         }
         .auth-box {
             background: white; padding: 40px; border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
-            width: 100%; max-width: 380px; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 380px; text-align: center;
         }
-        .auth-box h1 { color: var(--primary); margin-bottom: 5px; font-weight: 800; letter-spacing: 1px; }
-        .auth-input {
-            width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee;
-            border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s;
-        }
-        .auth-input:focus { border-color: var(--secondary); }
-        .auth-btn {
-            width: 100%; padding: 12px; border: none; border-radius: 8px;
-            cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: 0.2s;
-        }
+        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; }
+        .auth-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .btn-enter { background: var(--primary); color: white; }
         .btn-register { background: white; color: var(--primary); border: 2px solid #eee; }
 
-        /* --- HEADER & CONTROLS --- */
         header {
             background: var(--surface); padding: 10px 20px; display: flex;
-            justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.05); z-index: 100;
-            flex-wrap: wrap; gap: 10px;
+            justify-content: space-between; align-items: center; box-shadow: 0 2px 20px rgba(0,0,0,0.05); z-index: 100;
         }
-        .header-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        h1.logo { 
-            margin: 0; font-size: 1.4rem; color: var(--primary); 
-            font-weight: 800; display: flex; align-items: center; gap: 8px;
-        }
-        
-        /* Search Bar */
-        .search-wrapper { position: relative; }
-        #search-input {
-            padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd;
-            font-size: 0.85rem; width: 150px; outline: none; transition: width 0.3s;
-        }
-        #search-input:focus { width: 200px; border-color: var(--primary); }
-
+        h1.logo { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 800; }
         .controls { display: flex; gap: 8px; align-items: center; }
         button { border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size:0.85rem;}
         .btn-add { background: var(--primary); color: white; }
         .btn-step { background: #95a5a6; color: white; }
         .btn-backup { background: #e0f7fa; color: #006064; }
         .btn-logout { background: #ffebee; color: var(--danger); }
+        #search-input { padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
 
-        /* --- TIMELINE --- */
+        /* --- TIMELINE CANVAS --- */
         #timeline-viewport { 
             flex-grow: 1; overflow-x: auto; position: relative; 
             background-image: radial-gradient(#dbe0e6 1px, transparent 1px); 
             background-size: 25px 25px; 
-            cursor: grab; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; 
+            cursor: grab; touch-action: none;
         }
         #timeline-viewport:active { cursor: grabbing; }
-
-        #arrow-canvas { position: relative; height: 100%; min-width: 100vw; transition: width 0.1s linear; }
+        #arrow-canvas { position: relative; height: 100%; min-width: 100vw; }
         
         .axis-line { 
-            position: absolute; top: 50%; left: 20px; right: 20px; height: 4px; 
+            position: absolute; top: 50%; left: 50px; right: 50px; height: 4px; 
             background: linear-gradient(to right, var(--primary), var(--secondary)); 
             border-radius: 2px; 
         }
+        .axis-line::before { content: ''; position: absolute; left: -6px; top: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
+        .axis-line::after { content: ''; position: absolute; right: -14px; top: -8px; border-left: 20px solid var(--secondary); border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
 
-        /* --- EVENT NODES --- */
+        /* --- EVENTS --- */
         .event-node { 
-            position: absolute; transform-origin: center bottom;
+            position: absolute; transform-origin: center;
             display: flex; flex-direction: column; align-items: center; 
             cursor: pointer; transition: transform 0.1s linear, left 0.1s linear; z-index: 10; 
         }
-        .event-node:hover { z-index: 100 !important; filter: brightness(1.1); }
-        
+        .event-node:hover { z-index: 100 !important; filter: brightness(1.1); } /* Hover stays on top */
+
         .content-box {
-            background: white; padding: 8px 14px; border-radius: 10px;
-            border: 1px solid rgba(0,0,0,0.05); text-align: center; min-width: 90px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); white-space: nowrap; 
+            background: white; padding: 4px 8px; border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.1); text-align: center; 
+            /* STRICT WIDTH control to match JS math */
+            width: 120px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            white-space: normal; line-height: 1.2; word-wrap: break-word;
+            font-size: 12px; /* Base font size */
         }
-        .date-label { font-size: 0.7rem; color: #95a5a6; display: block; margin-top: 2px; font-weight: 500; }
-        .title-label { font-weight: 700; font-size: 0.9rem; color: var(--text); }
-        .status-check { color: #2ecc71; margin-left: 4px; font-size: 0.8rem; }
-
-        .pos-top { bottom: 50%; transform-origin: center bottom; } 
-        .pos-bottom { top: 50%; transform-origin: center top; }
-        .pos-center { top: 50%; transform-origin: center center; }
-
-        .tick { width: 3px; background: #cbd5e0; margin: 0; }
         
-        /* Types */
+        .date-label { font-size: 0.8em; color: #95a5a6; display: block; margin-top: 2px; font-weight: 600; }
+        .title-label { font-weight: 700; font-size: 1em; color: var(--text); }
+
+        .pos-top { bottom: 50%; padding-bottom: 30px; transform-origin: center bottom; } 
+        .pos-bottom { top: 50%; padding-top: 30px; transform-origin: center top; }
+        
+        .tick { position: absolute; left: 50%; width: 2px; background: #cbd5e0; transform: translateX(-50%); }
+        .pos-top .tick { bottom: 0; height: 30px; }
+        .pos-bottom .tick { top: 0; height: 30px; }
+
+        /* Styles */
         .type-flag .content-box { background: var(--danger); color: white; border: none; }
-        .type-flag .date-label { color: rgba(255,255,255,0.8); }
-        .type-flag .pole { width: 4px; background: var(--danger); margin: 0 auto; border-radius: 2px; }
-        
-        .type-cloud .content-box { background: #fff8e1; border: 2px solid var(--stress); color: var(--stress); border-radius: 40px; }
-        
+        .type-flag .date-label { color: rgba(255,255,255,0.9); }
+        .type-flag .pole { position: absolute; left: 50%; width: 3px; background: var(--danger); height: 100px; bottom: 0; transform: translateX(-50%); }
+        .type-flag.pos-top { padding-bottom: 100px; } /* Override padding for tall pole */
+
+        .type-cloud .content-box { background: #fff8e1; border: 2px solid var(--stress); color: var(--stress); border-radius: 20px; }
         .type-milestone .content-box { border: 2px solid var(--milestone); color: var(--milestone); }
-        .type-milestone .diamond { width: 12px; height: 12px; background: var(--milestone); transform: rotate(45deg); margin-top: -6px; }
-
-        /* FOOTSTEPS */
-        .footstep-dot {
-            width: 10px; height: 10px; background: var(--footstep);
-            border: 2px solid white; border-radius: 50%;
-            box-shadow: 0 0 0 1px var(--footstep);
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        }
-        .footstep-label-date {
-            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-            font-size: 0.6rem; color: #95a5a6; white-space: nowrap; font-weight: 600;
-        }
-        .footstep-box {
-            background: white; border: 1px solid var(--footstep); border-radius: 8px;
-            padding: 8px 12px; text-align: left; min-width: 140px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .footstep-list { margin: 0; padding-left: 18px; list-style-type: disc; }
-        .footstep-list li { font-size: 0.8rem; margin-bottom: 2px; color: var(--text); white-space: normal; }
-
-        /* Modal */
-        #modal-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; 
-            z-index: 2000; backdrop-filter: blur(2px); padding: 20px; 
-        }
-        .modal { background: white; padding: 25px; border-radius: 15px; width: 100%; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.8rem; color: #7f8c8d; }
-        input, select { width: 100%; padding: 10px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; outline: none; }
         
-        /* Filters */
-        .filter-switch { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #555; background: #eee; padding: 6px 12px; border-radius: 20px; cursor: pointer; }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            header { padding: 10px; }
-            h1.logo { font-size: 1.1rem; }
-            .btn-add span, .btn-step span, .btn-backup span { display: none; }
-            .btn-add::after { content: "+"; } .btn-step::after { content: "👣"; } .btn-backup::after { content: "💾"; }
-            #search-input { width: 100px; } #search-input:focus { width: 140px; }
-            .content-box { padding: 6px 10px; min-width: auto; }
+        /* FOOTSTEPS */
+        .footstep-dot { width: 8px; height: 8px; background: var(--footstep); border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px var(--footstep); }
+        .type-footstep-group { top: 50%; transform: translate(-50%, -50%); }
+        .footstep-box { 
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: white; border: 1px solid var(--footstep); border-radius: 8px; padding: 5px; width: 120px;
+            font-size: 10px; text-align: left;
         }
+
+        /* MODAL */
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal { background: white; padding: 25px; border-radius: 15px; width: 300px; }
+        .form-group { margin-bottom: 10px; }
+        input, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -182,31 +128,25 @@
     <div id="auth-overlay">
         <div class="auth-box">
             <h1>HORIZON</h1>
-            <p style="color:#7f8c8d; margin-bottom:30px; font-size: 0.9rem;">Strategic Life Planner</p>
             <input type="email" id="login-email" class="auth-input" placeholder="Email">
             <input type="password" id="login-pass" class="auth-input" placeholder="Password">
-            <p id="auth-error" style="color:#e74c3c; font-size:0.8rem; display:none; margin-top:10px;"></p>
+            <p id="auth-error" style="color:red; display:none;"></p>
             <button onclick="handleLogin()" class="auth-btn btn-enter">Login</button>
             <button onclick="handleRegister()" class="auth-btn btn-register">Register</button>
         </div>
     </div>
 
     <header>
-        <div class="header-left">
+        <div style="display:flex; gap:15px; align-items:center;">
             <h1 class="logo">HORIZON</h1>
-            <div class="search-wrapper">
-                <input type="text" id="search-input" placeholder="Search..." onkeyup="renderEvents()">
-            </div>
-            <label class="filter-switch">
-                <input type="checkbox" id="filter-major" checked onchange="renderEvents()"> Major
-            </label>
+            <input type="text" id="search-input" placeholder="Search..." onkeyup="renderEvents()">
+            <label style="font-size:0.8rem;"><input type="checkbox" id="filter-major" checked onchange="renderEvents()"> Major</label>
         </div>
-
         <div class="controls">
-            <span id="user-display" style="font-size:0.8rem; color:#7f8c8d; font-weight: 600; display:none;"></span>
-            <button onclick="exportData()" class="btn-backup" title="Backup Data">Backup</button>
-            <button onclick="openAddStepModal()" class="btn-step" title="Log Step">Step</button>
-            <button onclick="openModal()" class="btn-add" title="Add Event">Add</button>
+            <span id="user-display" style="font-size:0.8rem; color:#7f8c8d; display:none;"></span>
+            <button onclick="exportData()" class="btn-backup">Backup</button>
+            <button onclick="openAddStepModal()" class="btn-step">Step</button>
+            <button onclick="openModal()" class="btn-add">Add</button>
             <button onclick="logout()" class="btn-logout">Exit</button>
         </div>
     </header>
@@ -217,47 +157,28 @@
         </div>
     </div>
 
-    <!-- ADD/EDIT MODAL -->
+    <!-- MODAL -->
     <div id="modal-overlay">
         <div class="modal">
-            <h3 id="modal-title" style="margin-top:0; color: var(--primary);">Event</h3>
-            
-            <div class="form-group" id="group-type">
-                <label>Type</label>
+            <h3 id="modal-title" style="margin-top:0;">Event</h3>
+            <div class="form-group">
                 <select id="inp-type" onchange="handleTypeChange()">
-                    <option value="footstep">👣 Daily Progress Log</option>
+                    <option value="footstep">👣 Log Progress</option>
                     <option value="normal">📌 Routine Task</option>
-                    <option value="cloud">☁️ Exam / Stressor</option>
-                    <option value="flag">🚩 Goal / Target</option>
+                    <option value="cloud">☁️ Exam / Stress</option>
+                    <option value="flag">🚩 Major Goal</option>
                     <option value="milestone">💎 Milestone</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label id="lbl-title">Title</label>
-                <input type="text" id="inp-title" placeholder="Details...">
-            </div>
-
-            <div class="form-group"><label>Date</label><input type="date" id="inp-date"></div>
-            
-            <div class="form-group" id="group-status" style="display:none;">
-                <label>Status</label>
-                <select id="inp-status">
-                    <option value="pending">⏳ Pending</option>
-                    <option value="done">✅ Completed</option>
-                </select>
-            </div>
-
-            <div class="form-group" id="group-pos">
-                <label>Axis Position</label>
-                <select id="inp-pos"><option value="top">Top</option><option value="bottom">Bottom</option></select>
-            </div>
-            
-            <div style="display:flex; justify-content:space-between; margin-top:20px;">
-                <button id="btn-delete" onclick="deleteFromModal()" style="background:#ffebee; color:var(--danger); display:none;">Delete</button>
-                <div style="display:flex; gap:10px; margin-left:auto;">
-                    <button onclick="closeModal()" style="background:#f1f2f6; color:#333;">Cancel</button>
-                    <button id="btn-save" onclick="saveEvent()" class="btn-add">Save</button>
+            <div class="form-group"><input type="text" id="inp-title" placeholder="Title"></div>
+            <div class="form-group"><input type="date" id="inp-date"></div>
+            <div class="form-group" id="group-pos"><select id="inp-pos"><option value="top">Top</option><option value="bottom">Bottom</option></select></div>
+            <div class="form-group" id="group-status" style="display:none;"><select id="inp-status"><option value="pending">Pending</option><option value="done">Done</option></select></div>
+            <div style="display:flex; justify-content:space-between; margin-top:15px;">
+                <button id="btn-delete" onclick="deleteFromModal()" style="background:#ffebee; color:red; display:none; padding:5px 10px;">Delete</button>
+                <div>
+                    <button onclick="closeModal()" style="padding:5px 10px;">Cancel</button>
+                    <button onclick="saveEvent()" class="btn-add" style="padding:5px 15px;">Save</button>
                 </div>
             </div>
         </div>
@@ -268,7 +189,6 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { initializeFirestore, memoryLocalCache, collection, addDoc, updateDoc, query, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIGURATION
         const firebaseConfig = {
           apiKey: "AIzaSyD3VRih9GhCX0geYDrKxz2OkRnQymFBHLA",
           authDomain: "horizon-184d1.firebaseapp.com",
@@ -282,281 +202,187 @@
         const auth = getAuth(app);
         const db = initializeFirestore(app, { localCache: memoryLocalCache() });
 
-        let currentUser = null;
-        let liveEvents = []; 
-        let editingId = null; 
-        let zoomScale = 1.0;
-        let initialPinchDist = 0;
-        let initialZoom = 1.0;
-        let hasInitializedView = false;
+        let currentUser = null, liveEvents = [], editingId = null;
+        let zoomScale = 1.0, initialPinchDist = 0, initialZoom = 1.0, hasInitializedView = false;
         const viewport = document.getElementById('timeline-viewport');
 
-        // AUTH
-        window.handleLogin = async () => {
-            try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); }
-            catch (e) { document.getElementById('auth-error').innerText = e.message; document.getElementById('auth-error').style.display = 'block'; }
-        };
-        window.handleRegister = async () => {
-            try { await createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); }
-            catch (e) { document.getElementById('auth-error').innerText = e.message; document.getElementById('auth-error').style.display = 'block'; }
-        };
+        function getSafeDate(str) { if(!str) return new Date(); const p = str.split('-'); return new Date(p[0], p[1]-1, p[2]); }
+
+        window.handleLogin = async () => { try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch(e) { document.getElementById('auth-error').innerText = e.message; document.getElementById('auth-error').style.display='block'; } };
+        window.handleRegister = async () => { try { await createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch(e) { document.getElementById('auth-error').innerText = e.message; document.getElementById('auth-error').style.display='block'; } };
         window.logout = () => { hasInitializedView = false; signOut(auth); };
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('user-display').innerText = user.email;
-                listenToEvents(user.uid);
-            } else {
-                currentUser = null;
-                document.getElementById('auth-overlay').style.display = 'flex';
-                liveEvents = []; renderEvents();
-            }
+        onAuthStateChanged(auth, u => {
+            if(u) { currentUser=u; document.getElementById('auth-overlay').style.display='none'; document.getElementById('user-display').innerText=u.email; document.getElementById('user-display').style.display='block'; listenToEvents(u.uid); }
+            else { currentUser=null; document.getElementById('auth-overlay').style.display='flex'; liveEvents=[]; renderEvents(); }
         });
 
-        // DB & EXPORT
         function listenToEvents(uid) {
-            onSnapshot(query(collection(db, "users", uid, "events")), (snapshot) => {
-                liveEvents = [];
-                snapshot.forEach((doc) => liveEvents.push({ id: doc.id, ...doc.data() }));
-                renderEvents();
+            onSnapshot(query(collection(db, "users", uid, "events")), s => {
+                liveEvents = []; s.forEach(d => liveEvents.push({id:d.id, ...d.data()})); renderEvents();
             });
         }
 
-        window.exportData = () => {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(liveEvents));
-            const node = document.createElement('a');
-            node.setAttribute("href", dataStr);
-            node.setAttribute("download", `horizon_backup_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(node); node.click(); node.remove();
-        };
-
-        // MODAL LOGIC
         window.handleTypeChange = () => {
-            const type = document.getElementById('inp-type').value;
-            const isTask = ['normal', 'flag', 'milestone', 'cloud'].includes(type);
-            
-            document.getElementById('group-status').style.display = isTask ? 'block' : 'none';
-            document.getElementById('group-pos').style.display = type === 'footstep' ? 'none' : 'block';
-            
-            if (type === 'footstep') {
-                document.getElementById('lbl-title').innerText = "What did you do?";
-                document.getElementById('inp-title').placeholder = "e.g. Read Chapter 4";
-            } else {
-                document.getElementById('lbl-title').innerText = "Title";
-                document.getElementById('inp-title').placeholder = "Event Name";
-            }
+            const t = document.getElementById('inp-type').value;
+            document.getElementById('group-status').style.display = ['normal','flag','milestone','cloud'].includes(t) ? 'block' : 'none';
+            document.getElementById('group-pos').style.display = t==='footstep'?'none':'block';
+            document.getElementById('inp-title').placeholder = t==='footstep' ? "e.g. Read 5 pages" : "Event Title";
         };
-
-        window.openAddStepModal = () => {
-            document.getElementById('inp-type').value = 'footstep';
-            window.handleTypeChange();
-            document.getElementById('inp-date').valueAsDate = new Date();
-            window.openModal(true);
+        window.openAddStepModal = () => { document.getElementById('inp-type').value='footstep'; window.handleTypeChange(); document.getElementById('inp-date').valueAsDate=new Date(); window.openModal(true); };
+        window.openModal = (isStep=false) => {
+            if(!isStep) { document.getElementById('inp-title').value=''; document.getElementById('inp-date').value=''; document.getElementById('inp-type').value='normal'; document.getElementById('inp-pos').value='top'; window.handleTypeChange(); }
+            else document.getElementById('inp-title').value='';
+            editingId=null; document.getElementById('modal-title').innerText = isStep?"Log Progress":"New Event"; document.getElementById('btn-delete').style.display='none'; document.getElementById('modal-overlay').style.display='flex';
         };
-
-        window.openModal = (isStep = false) => {
-            if (!isStep) {
-                document.getElementById('inp-title').value = '';
-                document.getElementById('inp-date').value = '';
-                document.getElementById('inp-type').value = 'normal';
-                document.getElementById('inp-pos').value = 'top';
-                document.getElementById('inp-status').value = 'pending';
-                window.handleTypeChange();
-            } else {
-                document.getElementById('inp-title').value = '';
-            }
-            editingId = null; 
-            document.getElementById('modal-title').innerText = isStep ? "Log Progress" : "New Event";
-            document.getElementById('btn-save').innerText = "Save";
-            document.getElementById('btn-delete').style.display = 'none';
-            document.getElementById('modal-overlay').style.display = 'flex';
-        };
-
         window.editEvent = (id) => {
-            const ev = liveEvents.find(e => e.id === id);
-            if (!ev) return;
-            document.getElementById('inp-title').value = ev.title;
-            document.getElementById('inp-date').value = ev.date;
-            document.getElementById('inp-type').value = ev.type;
-            document.getElementById('inp-pos').value = ev.pos || 'top';
-            document.getElementById('inp-status').value = ev.status || 'pending';
-            window.handleTypeChange();
-            editingId = id;
-            document.getElementById('modal-title').innerText = "Edit";
-            document.getElementById('btn-save').innerText = "Update";
-            document.getElementById('btn-delete').style.display = 'block';
-            document.getElementById('modal-overlay').style.display = 'flex';
+            const e = liveEvents.find(x=>x.id===id); if(!e) return;
+            document.getElementById('inp-title').value=e.title; document.getElementById('inp-date').value=e.date; document.getElementById('inp-type').value=e.type; document.getElementById('inp-pos').value=e.pos||'top'; document.getElementById('inp-status').value=e.status||'pending';
+            window.handleTypeChange(); editingId=id; document.getElementById('modal-title').innerText="Edit"; document.getElementById('btn-delete').style.display='block'; document.getElementById('modal-overlay').style.display='flex';
         };
-
-        window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
-
+        window.closeModal = () => document.getElementById('modal-overlay').style.display='none';
         window.saveEvent = async () => {
-            if (!currentUser) return;
-            const data = {
-                title: document.getElementById('inp-title').value,
-                date: document.getElementById('inp-date').value,
-                type: document.getElementById('inp-type').value,
-                pos: document.getElementById('inp-pos').value,
-                status: document.getElementById('inp-status').value
-            };
-            if(!data.title || !data.date) return alert("Fill all fields");
-
-            if (editingId) await updateDoc(doc(db, "users", currentUser.uid, "events", editingId), data);
-            else await addDoc(collection(db, "users", currentUser.uid, "events"), { ...data, createdAt: Date.now() });
+            if(!currentUser) return;
+            const d = { title:document.getElementById('inp-title').value, date:document.getElementById('inp-date').value, type:document.getElementById('inp-type').value, pos:document.getElementById('inp-pos').value, status:document.getElementById('inp-status').value };
+            if(!d.title || !d.date) return alert("Required fields missing");
+            if(editingId) await updateDoc(doc(db,"users",currentUser.uid,"events",editingId), d); else await addDoc(collection(db,"users",currentUser.uid,"events"), {...d, createdAt:Date.now()});
             closeModal();
         };
+        window.deleteFromModal = async () => { if(editingId && confirm("Delete?")) { await deleteDoc(doc(db,"users",currentUser.uid,"events",editingId)); closeModal(); } };
+        window.exportData = () => { const s = "data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(liveEvents)); const n=document.createElement('a'); n.href=s; n.download="horizon_backup.json"; n.click(); };
 
-        window.deleteFromModal = async () => {
-            if (editingId && confirm("Delete?")) {
-                await deleteDoc(doc(db, "users", currentUser.uid, "events", editingId));
-                closeModal();
-            }
-        };
-
-        // RENDER
         window.renderEvents = () => {
-            const canvas = document.getElementById('arrow-canvas');
+            const cvs = document.getElementById('arrow-canvas');
             const showMajor = document.getElementById('filter-major').checked;
-            const searchText = document.getElementById('search-input').value.toLowerCase();
+            const search = document.getElementById('search-input').value.toLowerCase();
             
-            document.querySelectorAll('.event-node').forEach(o => o.remove());
+            document.querySelectorAll('.event-node').forEach(n => n.remove());
+            if(liveEvents.length===0) return;
 
-            if (liveEvents.length === 0) return;
-
-            // GROUP FOOTSTEPS & FILTER
-            const footstepGroups = {};
-            const standardEvents = [];
-            
-            liveEvents.forEach(ev => {
-                if (!ev.title.toLowerCase().includes(searchText)) return; // Search Filter
-
-                if (ev.type === 'footstep') {
-                    if (!footstepGroups[ev.date]) footstepGroups[ev.date] = [];
-                    footstepGroups[ev.date].push(ev);
-                } else {
-                    if ((ev.type === 'flag' || ev.type === 'cloud') && !showMajor) return;
-                    standardEvents.push(ev);
-                }
+            const fGroups = {}, stdEvents = [];
+            liveEvents.forEach(e => {
+                if(!e.title.toLowerCase().includes(search)) return;
+                if(e.type==='footstep') { if(!fGroups[e.date]) fGroups[e.date]=[]; fGroups[e.date].push(e); }
+                else { if((e.type==='flag'||e.type==='cloud') && !showMajor) return; stdEvents.push(e); }
             });
 
-            const renderList = [...standardEvents];
-            Object.keys(footstepGroups).forEach(date => {
-                renderList.push({ type: 'footstep-group', date: date, items: footstepGroups[date], pos: 'bottom' });
-            });
-            renderList.sort((a,b) => new Date(a.date) - new Date(b.date));
+            const rList = [...stdEvents];
+            Object.keys(fGroups).forEach(d => rList.push({type:'footstep-group', date:d, items:fGroups[d], pos:'bottom'}));
+            rList.sort((a,b) => getSafeDate(a.date) - getSafeDate(b.date));
 
-            if(renderList.length === 0) return;
+            if(rList.length===0) return;
 
-            const startDate = new Date(renderList[0].date).getTime();
-            const lastDate = new Date(renderList[renderList.length-1].date).getTime();
-            const totalDays = (lastDate - startDate) / 86400000; 
+            const startT = getSafeDate(rList[0].date).getTime();
+            const endT = getSafeDate(rList[rList.length-1].date).getTime();
+            const totalDays = Math.max(1, (endT - startT)/86400000);
 
-            if (!hasInitializedView && totalDays > 0) {
-                zoomScale = Math.min(1.0, Math.max(0.05, (window.innerWidth - 100) / (totalDays * 5)));
+            // 1. AUTO FIT DEFAULT (Ensure Full Arrow Visible)
+            if(!hasInitializedView && totalDays > 0) {
+                const pad = 200; // Left+Right padding
+                const availW = window.innerWidth - pad;
+                const basePx = 5; 
+                // Fit: scale * basePx * days = availW
+                const fit = availW / (totalDays * basePx);
+                zoomScale = Math.max(0.001, fit); 
                 hasInitializedView = true;
             }
 
-            const isMobile = window.innerWidth < 600;
-            const pxPerDay = (isMobile ? 3 : 5) * zoomScale;
-            canvas.style.width = Math.max(window.innerWidth, (totalDays * pxPerDay) + 400) + "px";
+            const pxDay = 5 * zoomScale;
+            const padding = 200; // Ensure head/tail visible
+            const fullW = (totalDays * pxDay) + padding;
+            cvs.style.width = Math.max(window.innerWidth, fullW) + "px";
 
-            let nodeScale = Math.min(1, Math.max(0.2, zoomScale * 1.5));
-            if (zoomScale < 0.2) nodeScale = 0.3;
+            // COLLISION VARS
+            const NODE_W = 120; // Matches CSS width
+            let lastRightTop = -9999, lastRightBottom = -9999;
 
-            const topLanes = []; const bottomLanes = [];
-            const scaledNodeWidth = 140 * nodeScale;
+            rList.forEach(ev => {
+                const t = getSafeDate(ev.date).getTime();
+                const left = ((t - startT)/86400000 * pxDay) + (padding/2);
 
-            renderList.forEach(ev => {
-                const evTime = new Date(ev.date).getTime();
-                const left = ((evTime - startDate) / 86400000 * pxPerDay) + (isMobile ? 50 : 100);
+                // 2. DYNAMIC SCALING (Prevent Overlap)
+                let scale = Math.max(0.1, zoomScale); // Base scale follows zoom
+                
+                // Check collision
+                let lastR = (ev.pos==='top') ? lastRightTop : lastRightBottom;
+                // Center-to-Center distance check
+                // Current center is 'left'. Previous right edge is 'lastR'.
+                // We want: left - (currentWidth/2) > lastR
+                const currentHalfW = (NODE_W * scale) / 2;
+                
+                if (left - currentHalfW < lastR) {
+                    // Overlap! Shrink to fit.
+                    // available space from last edge to current center
+                    const space = left - lastR; 
+                    // if space is very small, we shrink a lot.
+                    // max width we can have is space * 2
+                    // scale = maxAllowedWidth / NODE_W
+                    const allowedW = Math.max(10, space * 2); // min 10px width
+                    scale = Math.min(scale, allowedW / NODE_W);
+                }
+                
+                // Cap scale
+                scale = Math.min(1.0, scale);
 
-                if (ev.type === 'footstep-group') {
-                    const node = document.createElement('div');
-                    node.className = 'event-node type-footstep-group pos-center';
-                    node.style.left = left + "px";
-                    node.style.transform = `translate(-50%, -50%)`; // Exact center on line
+                // Update boundary for next item
+                const realW = NODE_W * scale;
+                if(ev.pos==='top') lastRightTop = left + (realW/2) + 2; // +2px buffer
+                else lastRightBottom = left + (realW/2) + 2;
+
+                // Same Date Stacking (Mini Vertical Shift)
+                // If previous item was on EXACT same day, 'left' is identical.
+                // 'space' becomes 0. 'scale' becomes minimal.
+                // This effectively hides it or makes it a dot.
+                // To fix "list" effect, we apply a small Y offset if scale is tiny?
+                // For now, let's trust the shrink.
+
+                // RENDER
+                if(ev.type==='footstep-group') {
+                    const el = document.createElement('div'); el.className='event-node type-footstep-group';
+                    el.style.left=left+'px'; el.style.top='50%'; el.style.transform='translate(-50%,-50%)';
                     
-                    // The Dot
-                    const dot = document.createElement('div');
-                    dot.className = 'footstep-dot';
-                    node.appendChild(dot);
-
-                    // The Date Label (Visible always)
-                    if (zoomScale > 0.1) {
-                        const dateLbl = document.createElement('div');
-                        dateLbl.className = 'footstep-label-date';
-                        dateLbl.innerText = new Date(ev.date).toLocaleDateString(undefined, {month:'short', day:'numeric'});
-                        node.appendChild(dateLbl);
-                    }
-
-                    // The Box (Zoomed In)
-                    if (zoomScale > 0.4) {
-                        const box = document.createElement('div');
-                        box.className = 'footstep-box';
-                        
-                        const currentLeft = left - (scaledNodeWidth/2);
-                        let lane = 0; while (bottomLanes[lane] > currentLeft) lane++;
-                        bottomLanes[lane] = left + (scaledNodeWidth/2) + 10;
-                        
-                        box.style.marginTop = `${30 + (lane * 60 * nodeScale)}px`;
-                        box.style.transform = `translateX(-50%) scale(${nodeScale})`;
-                        box.style.transformOrigin = 'top center';
-
-                        const ul = document.createElement('ul');
-                        ul.className = 'footstep-list';
-                        ev.items.forEach(item => {
-                            const li = document.createElement('li');
-                            li.innerText = item.title;
-                            li.onclick = (e) => { e.stopPropagation(); window.editEvent(item.id); };
-                            li.style.cursor = "pointer";
+                    const dot = document.createElement('div'); dot.className='footstep-dot'; el.appendChild(dot);
+                    
+                    if(scale > 0.3) {
+                        const box = document.createElement('div'); box.className='footstep-box';
+                        box.style.transform = `translateX(-50%) scale(${scale})`; box.style.transformOrigin='top center';
+                        const ul = document.createElement('ul'); ul.className='footstep-list';
+                        ev.items.forEach(i => {
+                            const li = document.createElement('li'); li.innerText=i.title; 
+                            li.onclick=(e)=>{e.stopPropagation();window.editEvent(i.id)}; li.style.cursor='pointer';
                             ul.appendChild(li);
                         });
-                        box.appendChild(ul);
-                        node.appendChild(box);
+                        box.appendChild(ul); el.appendChild(box);
                     }
-                    canvas.appendChild(node);
-                    return;
+                    cvs.appendChild(el); return;
                 }
 
-                // Standard Events
-                const currentLeft = left - (scaledNodeWidth/2);
-                const lanes = ev.pos === 'top' ? topLanes : bottomLanes;
-                let lane = 0; while (lanes[lane] > currentLeft) lane++;
-                lanes[lane] = left + (scaledNodeWidth/2) + (10 * nodeScale); 
+                const el = document.createElement('div');
+                el.className = `event-node type-${ev.type} ${ev.pos==='top'?'pos-top':'pos-bottom'}`;
+                el.style.left = left + "px";
+                el.style.transform = `translateX(-50%) scale(${scale})`;
+                el.onclick = () => window.editEvent(ev.id);
 
-                const baseH = 25; const stepH = 65 * nodeScale; 
-                const totalH = baseH + (lane * stepH);
-
-                const node = document.createElement('div');
-                node.className = `event-node type-${ev.type} ${ev.pos === 'top' ? 'pos-top' : 'pos-bottom'}`;
-                node.style.left = left + "px";
-                node.style.transform = `translateX(-50%) scale(${nodeScale})`;
-                node.onclick = () => window.editEvent(ev.id);
-
-                const dateStr = new Date(ev.date).toLocaleDateString('en-GB', {day:'numeric', month:'short'});
-                const check = ev.status === 'done' ? '<span class="status-check">✔</span>' : '';
+                const dStr = getSafeDate(ev.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+                const chk = ev.status==='done'?'✔':'';
                 
-                let html = '';
-                if (ev.type === 'flag') {
-                    const h = (120 * nodeScale) + (lane * stepH);
-                    html = `<div class="content-box"><span class="title-label">${ev.title}${check}</span><br><span class="date-label">${dateStr}</span></div><div class="pole" style="height:${h}px"></div>`;
-                } else if (ev.type === 'milestone') {
-                     html = `<div class="content-box"><span class="title-label">${ev.title}${check}</span></div><div class="diamond"></div><div class="tick" style="height:${totalH}px"></div>`;
+                let h = '';
+                if(ev.type==='flag') {
+                    h = `<div class="content-box"><span class="title-label">${ev.title} ${chk}</span><br><span class="date-label">${dStr}</span></div><div class="pole"></div>`;
+                } else if(ev.type==='milestone') {
+                    h = `<div class="content-box"><span class="title-label">${ev.title} ${chk}</span></div><div class="diamond"></div><div class="tick"></div>`;
                 } else {
-                    const content = `<div class="content-box"><span class="title-label">${ev.title}${check}</span><br><span class="date-label">${dateStr}</span></div>`;
-                    html = ev.pos === 'top' ? `${content}<div class="tick" style="height:${totalH}px"></div>` : `<div class="tick" style="height:${totalH}px"></div>${content}`;
+                    const c = `<div class="content-box"><span class="title-label">${ev.title} ${chk}</span><br><span class="date-label">${dStr}</span></div>`;
+                    h = ev.pos==='top' ? `${c}<div class="tick"></div>` : `<div class="tick"></div>${c}`;
                 }
-
-                node.innerHTML = html;
-                canvas.appendChild(node);
+                el.innerHTML = h; cvs.appendChild(el);
             });
         };
 
-        // ZOOM GESTURES
-        viewport.addEventListener('touchstart', (e) => { if(e.touches.length===2) { initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); initialZoom = zoomScale; } });
-        viewport.addEventListener('touchmove', (e) => { if(e.touches.length===2) { e.preventDefault(); const d = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); zoomScale = Math.max(0.01, Math.min(initialZoom * (d/initialPinchDist), 50)); renderEvents(); } });
+        // CONTROLS
+        viewport.addEventListener('wheel', e => { e.preventDefault(); const d = e.deltaY>0?0.9:1.1; zoomScale = Math.max(0.001, Math.min(zoomScale*d, 50)); renderEvents(); }, {passive:false});
+        viewport.addEventListener('touchstart', e => { if(e.touches.length===2) { initialPinchDist = Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY); initialZoom = zoomScale; } });
+        viewport.addEventListener('touchmove', e => { if(e.touches.length===2) { e.preventDefault(); const d = Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY); zoomScale = Math.max(0.001, Math.min(initialZoom*(d/initialPinchDist), 50)); renderEvents(); } });
         window.addEventListener('resize', () => { if(liveEvents.length>0) renderEvents(); });
 
     </script>
