@@ -24,7 +24,7 @@
             color: var(--text); touch-action: none; 
         }
 
-        /* --- UI COMPONENTS --- */
+        /* --- UI --- */
         #auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to right, #4e54c8, #8f94fb);
@@ -52,7 +52,7 @@
         .btn-logout { background: #ffebee; color: var(--danger); }
         #search-input { padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
 
-        /* --- TIMELINE CANVAS --- */
+        /* --- TIMELINE --- */
         #timeline-viewport { 
             flex-grow: 1; overflow-x: auto; position: relative; 
             background-image: radial-gradient(#dbe0e6 1px, transparent 1px); 
@@ -63,46 +63,52 @@
         #arrow-canvas { position: relative; height: 100%; min-width: 100vw; }
         
         .axis-line { 
-            position: absolute; top: 50%; left: 50px; right: 50px; height: 4px; 
+            position: absolute; top: 50%; left: 50px; right: 80px; /* More space on right for head */
+            height: 4px; 
             background: linear-gradient(to right, var(--primary), var(--secondary)); 
             border-radius: 2px; 
         }
         .axis-line::before { content: ''; position: absolute; left: -6px; top: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
-        .axis-line::after { content: ''; position: absolute; right: -14px; top: -8px; border-left: 20px solid var(--secondary); border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+        /* Arrow Head */
+        .axis-line::after { 
+            content: ''; position: absolute; right: -15px; top: -8px; 
+            border-left: 20px solid var(--secondary); 
+            border-top: 10px solid transparent; border-bottom: 10px solid transparent; 
+        }
 
-        /* --- EVENTS --- */
+        /* --- NODES --- */
         .event-node { 
             position: absolute; transform-origin: center;
             display: flex; flex-direction: column; align-items: center; 
             cursor: pointer; transition: transform 0.1s linear, left 0.1s linear; z-index: 10; 
         }
-        .event-node:hover { z-index: 100 !important; filter: brightness(1.1); } /* Hover stays on top */
+        .event-node:hover { z-index: 100 !important; filter: brightness(1.1); }
 
         .content-box {
             background: white; padding: 4px 8px; border-radius: 6px;
             border: 1px solid rgba(0,0,0,0.1); text-align: center; 
-            /* STRICT WIDTH control to match JS math */
-            width: 120px; 
+            width: 140px; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-            white-space: normal; line-height: 1.2; word-wrap: break-word;
-            font-size: 12px; /* Base font size */
+            white-space: normal; line-height: 1.2; font-size: 12px;
+            position: relative; /* For offset positioning */
         }
         
         .date-label { font-size: 0.8em; color: #95a5a6; display: block; margin-top: 2px; font-weight: 600; }
         .title-label { font-weight: 700; font-size: 1em; color: var(--text); }
 
-        .pos-top { bottom: 50%; padding-bottom: 30px; transform-origin: center bottom; } 
-        .pos-bottom { top: 50%; padding-top: 30px; transform-origin: center top; }
+        /* Strict margins from line */
+        .pos-top { bottom: 50%; padding-bottom: 35px; transform-origin: center bottom; } 
+        .pos-bottom { top: 50%; padding-top: 35px; transform-origin: center top; }
         
+        /* The Tick connects the box to the date on line */
         .tick { position: absolute; left: 50%; width: 2px; background: #cbd5e0; transform: translateX(-50%); }
-        .pos-top .tick { bottom: 0; height: 30px; }
-        .pos-bottom .tick { top: 0; height: 30px; }
+        .pos-top .tick { bottom: 0; height: 35px; }
+        .pos-bottom .tick { top: 0; height: 35px; }
 
-        /* Styles */
         .type-flag .content-box { background: var(--danger); color: white; border: none; }
         .type-flag .date-label { color: rgba(255,255,255,0.9); }
         .type-flag .pole { position: absolute; left: 50%; width: 3px; background: var(--danger); height: 100px; bottom: 0; transform: translateX(-50%); }
-        .type-flag.pos-top { padding-bottom: 100px; } /* Override padding for tall pole */
+        .type-flag.pos-top { padding-bottom: 100px; } 
 
         .type-cloud .content-box { background: #fff8e1; border: 2px solid var(--stress); color: var(--stress); border-radius: 20px; }
         .type-milestone .content-box { border: 2px solid var(--milestone); color: var(--milestone); }
@@ -111,10 +117,12 @@
         .footstep-dot { width: 8px; height: 8px; background: var(--footstep); border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px var(--footstep); }
         .type-footstep-group { top: 50%; transform: translate(-50%, -50%); }
         .footstep-box { 
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            background: white; border: 1px solid var(--footstep); border-radius: 8px; padding: 5px; width: 120px;
-            font-size: 10px; text-align: left;
+            position: absolute; top: 35px; left: 50%; transform: translateX(-50%);
+            background: white; border: 1px solid var(--footstep); border-radius: 8px; padding: 6px; 
+            width: 140px; font-size: 11px; text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
+        .footstep-list { text-align: left; padding-left: 20px; margin: 0; }
 
         /* MODAL */
         #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
@@ -278,74 +286,78 @@
 
             // 1. AUTO FIT DEFAULT (Ensure Full Arrow Visible)
             if(!hasInitializedView && totalDays > 0) {
-                const pad = 200; // Left+Right padding
+                const pad = 200; 
                 const availW = window.innerWidth - pad;
                 const basePx = 5; 
-                // Fit: scale * basePx * days = availW
                 const fit = availW / (totalDays * basePx);
                 zoomScale = Math.max(0.001, fit); 
                 hasInitializedView = true;
             }
 
             const pxDay = 5 * zoomScale;
-            const padding = 200; // Ensure head/tail visible
+            // Increased padding to ensure arrow head/tail are not cut off
+            const padding = 300; 
             const fullW = (totalDays * pxDay) + padding;
             cvs.style.width = Math.max(window.innerWidth, fullW) + "px";
 
             // COLLISION VARS
-            const NODE_W = 120; // Matches CSS width
+            const NODE_W = 140; // Base width of box
+            const BUFFER = 10;
             let lastRightTop = -9999, lastRightBottom = -9999;
 
             rList.forEach(ev => {
                 const t = getSafeDate(ev.date).getTime();
-                const left = ((t - startT)/86400000 * pxDay) + (padding/2);
+                const dateX = ((t - startT)/86400000 * pxDay) + (padding/2);
+                let visualX = dateX;
 
-                // 2. DYNAMIC SCALING (Prevent Overlap)
-                let scale = Math.max(0.1, zoomScale); // Base scale follows zoom
+                // 2. SMART COLLISION & SHIFT
+                // Instead of only shrinking, we visually SHIFT the box to the right if overlapped
+                // The 'Tick' stays at dateX (correct date), but the box slides.
                 
-                // Check collision
+                let scale = Math.max(0.1, zoomScale); 
                 let lastR = (ev.pos==='top') ? lastRightTop : lastRightBottom;
-                // Center-to-Center distance check
-                // Current center is 'left'. Previous right edge is 'lastR'.
-                // We want: left - (currentWidth/2) > lastR
+                
+                // Edge Check: (CurrentVisualLeft) vs (LastRight)
+                // Current Visual Left = visualX - (Width/2)
                 const currentHalfW = (NODE_W * scale) / 2;
                 
-                if (left - currentHalfW < lastR) {
-                    // Overlap! Shrink to fit.
-                    // available space from last edge to current center
-                    const space = left - lastR; 
-                    // if space is very small, we shrink a lot.
-                    // max width we can have is space * 2
-                    // scale = maxAllowedWidth / NODE_W
-                    const allowedW = Math.max(10, space * 2); // min 10px width
-                    scale = Math.min(scale, allowedW / NODE_W);
+                if (visualX - currentHalfW < lastR + BUFFER) {
+                    // Collision Detected!
+                    // Shift visual center to the right so it starts after last item
+                    visualX = lastR + BUFFER + currentHalfW;
+                    
+                    // If shifting pushed it too far (e.g. into next week), we shrink instead
+                    // Heuristic: If we had to shift > 50px, shrink font/box instead
+                    if (visualX - dateX > 50) {
+                        visualX = dateX; // Reset shift
+                        // Calculate max allowed width
+                        const available = Math.max(20, (dateX - lastR) * 2);
+                        scale = Math.min(scale, available / NODE_W);
+                    }
                 }
                 
-                // Cap scale
                 scale = Math.min(1.0, scale);
 
-                // Update boundary for next item
+                // Update boundary
                 const realW = NODE_W * scale;
-                if(ev.pos==='top') lastRightTop = left + (realW/2) + 2; // +2px buffer
-                else lastRightBottom = left + (realW/2) + 2;
-
-                // Same Date Stacking (Mini Vertical Shift)
-                // If previous item was on EXACT same day, 'left' is identical.
-                // 'space' becomes 0. 'scale' becomes minimal.
-                // This effectively hides it or makes it a dot.
-                // To fix "list" effect, we apply a small Y offset if scale is tiny?
-                // For now, let's trust the shrink.
+                const rightEdge = visualX + (realW/2);
+                if(ev.pos==='top') lastRightTop = rightEdge; else lastRightBottom = rightEdge;
 
                 // RENDER
                 if(ev.type==='footstep-group') {
                     const el = document.createElement('div'); el.className='event-node type-footstep-group';
-                    el.style.left=left+'px'; el.style.top='50%'; el.style.transform='translate(-50%,-50%)';
+                    el.style.left=dateX+'px'; // Dot stays on date
+                    el.style.top='50%'; el.style.transform='translate(-50%,-50%)';
                     
                     const dot = document.createElement('div'); dot.className='footstep-dot'; el.appendChild(dot);
                     
                     if(scale > 0.3) {
                         const box = document.createElement('div'); box.className='footstep-box';
-                        box.style.transform = `translateX(-50%) scale(${scale})`; box.style.transformOrigin='top center';
+                        // Shift box visually if needed
+                        const shiftAmount = visualX - dateX;
+                        box.style.transform = `translateX(calc(-50% + ${shiftAmount}px)) scale(${scale})`; 
+                        box.style.transformOrigin='top center';
+                        
                         const ul = document.createElement('ul'); ul.className='footstep-list';
                         ev.items.forEach(i => {
                             const li = document.createElement('li'); li.innerText=i.title; 
@@ -359,12 +371,19 @@
 
                 const el = document.createElement('div');
                 el.className = `event-node type-${ev.type} ${ev.pos==='top'?'pos-top':'pos-bottom'}`;
-                el.style.left = left + "px";
-                el.style.transform = `translateX(-50%) scale(${scale})`;
+                el.style.left = dateX + "px"; // Node root at Date
+                // Scale the whole node, but we might need to offset content-box if we shifted
+                // Applying shift to transform
+                const shiftAmount = visualX - dateX;
+                el.style.transform = `translateX(calc(-50% + ${shiftAmount}px)) scale(${scale})`;
                 el.onclick = () => window.editEvent(ev.id);
 
                 const dStr = getSafeDate(ev.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
                 const chk = ev.status==='done'?'✔':'';
+                
+                // If we shifted the box significantly, slant the tick?
+                // For simplicity, we just keep the vertical tick at the shifted position
+                // (User prefers streamline/readability over tick angle precision)
                 
                 let h = '';
                 if(ev.type==='flag') {
