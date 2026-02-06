@@ -5,17 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HORIZON | Strategic Life Planner</title>
     <style>
+        /* --- THEME VARIABLES --- */
         :root {
-            --primary: #4e54c8;
-            --secondary: #8f94fb;
+            /* Shared Constants */
             --danger: #ff5252;
             --stress: #ff9800;
-            --footstep: #7f8c8d;
             --milestone: #00b894;
-            --bg: #f8f9fa;
-            --surface: #ffffff;
-            --text: #2c3e50;
-            --magic: #8e2de2; /* Gemini Purple */
+            --magic: #8e2de2;
+        }
+
+        /* 1. BEIGE / DAY MODE (Default - Endurance) */
+        [data-theme="beige"] {
+            --primary: #d4af37; /* Metallic Gold */
+            --secondary: #f4c430; 
+            --today-color: #FFD700;
+            --bg: #FAF3E0; /* Light Beige */
+            --surface: #FFF8E7; /* Slightly lighter */
+            --text: #3E2723; /* Dark Brown */
+            --footstep: #8D6E63;
+            --border: rgba(62, 39, 35, 0.1);
+        }
+
+        /* 2. DARK / NIGHT MODE (Low Glare) */
+        [data-theme="dark"] {
+            --primary: #FFD700; /* Bright Gold */
+            --secondary: #FFECB3;
+            --today-color: #FFFF00;
+            --bg: #121212; /* Dark Gray */
+            --surface: #1E1E1E; /* Charcoal */
+            --text: #E0E0E0; /* Off-white */
+            --footstep: #90A4AE;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* 3. BLUE / FOCUS MODE (Calm Attention) */
+        [data-theme="blue"] {
+            --primary: #0277BD; /* Ocean Blue */
+            --secondary: #4FC3F7;
+            --today-color: #00B0FF;
+            --bg: #EAF4FF; /* Very Light Blue */
+            --surface: #F0F8FF; /* Alice Blue */
+            --text: #002147; /* Navy Text */
+            --footstep: #546E7A;
+            --border: rgba(0, 33, 71, 0.1);
         }
 
         body { 
@@ -23,29 +55,35 @@
             background-color: var(--bg); 
             margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
             color: var(--text); 
-            /* Removed global touch-action: none to allow scrolling/panning */
+            transition: background-color 0.3s, color 0.3s; /* Smooth theme switch */
         }
 
         /* --- UI OVERLAYS --- */
         #auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px;
         }
         .auth-box {
-            background: white; padding: 40px 30px; border-radius: 20px;
+            background: var(--surface); padding: 40px 30px; border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 380px; text-align: center;
         }
-        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        .auth-input { 
+            width: 100%; padding: 12px; margin: 10px 0; border: 2px solid var(--border); 
+            border-radius: 10px; box-sizing: border-box; font-size: 16px; 
+            background: var(--bg); color: var(--text);
+        }
         .auth-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 16px; }
         .btn-enter { background: var(--primary); color: white; }
-        .btn-register { background: white; color: var(--primary); border: 2px solid #eee; }
+        .btn-register { background: var(--surface); color: var(--primary); border: 2px solid var(--border); }
 
         /* --- HEADER --- */
         header {
             background: var(--surface); padding: 12px 20px; display: flex;
-            justify-content: space-between; align-items: center; box-shadow: 0 2px 20px rgba(0,0,0,0.05); z-index: 100;
+            justify-content: space-between; align-items: center; 
+            box-shadow: 0 2px 20px rgba(0,0,0,0.05); z-index: 100;
             flex-wrap: wrap; gap: 10px;
+            transition: background-color 0.3s;
         }
         .header-left { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 200px; }
         h1.logo { margin: 0; font-size: 1.4rem; color: var(--primary); font-weight: 800; white-space: nowrap; }
@@ -55,25 +93,28 @@
         button:active { transform: scale(0.96); }
         
         .btn-add { background: var(--primary); color: white; }
-        .btn-step { background: #95a5a6; color: white; }
-        .btn-backup { background: #e0f7fa; color: #006064; }
+        .btn-step { background: var(--footstep); color: white; }
+        .btn-backup { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
         .btn-magic { background: linear-gradient(135deg, #8e2de2, #4a00e0); color: white; box-shadow: 0 4px 15px rgba(142, 45, 226, 0.3); }
         .btn-logout { background: #ffebee; color: var(--danger); }
+        .btn-theme { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 1.2rem; padding: 6px 12px; }
         
         #search-input { 
-            padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; outline: none; 
+            padding: 8px 14px; border-radius: 20px; border: 1px solid var(--border); outline: none; 
             font-size: 0.9rem; width: 100%; max-width: 200px; 
+            background: var(--bg); color: var(--text);
         }
 
         /* --- TIMELINE AREA --- */
         #timeline-viewport { 
             flex-grow: 1; overflow-x: auto; position: relative; 
-            background-image: radial-gradient(#dbe0e6 1px, transparent 1px); 
+            background-image: radial-gradient(var(--footstep) 1px, transparent 1px); /* Dot grid matches theme */
             background-size: 25px 25px; 
+            opacity: 0.8; /* Slight fade for grid */
             cursor: grab; 
-            /* Allow panning but prevent browser back/forward gestures */
             touch-action: pan-x pan-y;
             overscroll-behavior: none;
+            transition: background-color 0.3s;
         }
         #timeline-viewport:active { cursor: grabbing; }
         
@@ -94,6 +135,24 @@
             border-top: 10px solid transparent; border-bottom: 10px solid transparent; 
         }
 
+        /* --- TODAY MARKER --- */
+        .today-marker {
+            position: absolute; top: 50%; transform: translate(-50%, -100%); 
+            z-index: 150; pointer-events: none; display: flex; flex-direction: column; align-items: center; margin-top: -5px;
+        }
+        .today-arrow {
+            width: 0; height: 0; 
+            border-left: 8px solid transparent; border-right: 8px solid transparent;
+            border-top: 12px solid var(--today-color);
+            animation: jump 1s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5);
+        }
+        .today-text {
+            background: var(--today-color); color: var(--bg); /* Contrast text */
+            font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); animation: jump 1s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5);
+        }
+        @keyframes jump { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
+
         /* --- NODES --- */
         .event-node { 
             position: absolute; transform-origin: center;
@@ -103,22 +162,21 @@
         .event-node:hover { z-index: 100 !important; filter: brightness(1.1); }
 
         .content-box {
-            background: white; padding: 6px 10px; border-radius: 8px;
-            border: 1px solid rgba(0,0,0,0.1); text-align: center; 
-            width: 140px; 
+            background: var(--surface); padding: 6px 10px; border-radius: 8px;
+            border: 1px solid var(--border); text-align: center; 
+            width: 140px; color: var(--text);
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
             white-space: normal; line-height: 1.25; font-size: 12px;
             position: relative;
         }
         
-        .date-label { font-size: 0.85em; color: #95a5a6; display: block; margin-top: 3px; font-weight: 600; }
+        .date-label { font-size: 0.85em; color: var(--footstep); display: block; margin-top: 3px; font-weight: 600; }
         .title-label { font-weight: 700; font-size: 1.05em; color: var(--text); }
 
-        /* Strict margins from line */
         .pos-top { bottom: 50%; padding-bottom: 35px; transform-origin: center bottom; } 
         .pos-bottom { top: 50%; padding-top: 35px; transform-origin: center top; }
         
-        .tick { position: absolute; left: 50%; width: 2px; background: #cbd5e0; transform: translateX(-50%); }
+        .tick { position: absolute; left: 50%; width: 2px; background: var(--footstep); transform: translateX(-50%); opacity: 0.5; }
         .pos-top .tick { bottom: 0; height: 35px; }
         .pos-bottom .tick { top: 0; height: 35px; }
 
@@ -127,16 +185,16 @@
         .type-flag .pole { position: absolute; left: 50%; width: 3px; background: var(--danger); height: 100px; bottom: 0; transform: translateX(-50%); }
         .type-flag.pos-top { padding-bottom: 100px; } 
 
-        .type-cloud .content-box { background: #fff8e1; border: 2px solid var(--stress); color: var(--stress); border-radius: 20px; }
+        .type-cloud .content-box { background: var(--surface); border: 2px solid var(--stress); color: var(--stress); border-radius: 20px; }
         .type-milestone .content-box { border: 2px solid var(--milestone); color: var(--milestone); }
         
         /* FOOTSTEPS */
-        .footstep-dot { width: 8px; height: 8px; background: var(--footstep); border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px var(--footstep); }
+        .footstep-dot { width: 8px; height: 8px; background: var(--footstep); border-radius: 50%; border: 2px solid var(--bg); box-shadow: 0 0 0 1px var(--footstep); }
         .type-footstep-group { top: 50%; transform: translate(-50%, -50%); }
         .footstep-box { 
             position: absolute; top: 35px; left: 50%; transform: translateX(-50%);
-            background: white; border: 1px solid var(--footstep); border-radius: 8px; padding: 6px; 
-            width: 140px; font-size: 11px; text-align: center;
+            background: var(--surface); border: 1px solid var(--footstep); border-radius: 8px; padding: 6px; 
+            width: 140px; font-size: 11px; text-align: center; color: var(--text);
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         .footstep-list { text-align: left; padding-left: 20px; margin: 0; }
@@ -146,41 +204,42 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 3000; 
         }
-        .modal { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
+        .modal { background: var(--surface); padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); color: var(--text); }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: #7f8c8d; font-weight: 600; }
-        input, select { width: 100%; padding: 10px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 1rem; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--footstep); font-weight: 600; }
+        input, select { 
+            width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; 
+            box-sizing: border-box; outline: none; font-size: 1rem; 
+            background: var(--bg); color: var(--text);
+        }
         
-        /* AI MAGIC STYLES */
-        .ai-result-list { max-height: 150px; overflow-y: auto; background: #f8f9fa; border-radius: 8px; margin: 10px 0; padding: 5px; font-size: 0.85rem; }
-        .ai-result-item { padding: 5px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        /* AI STYLES */
+        .ai-result-list { max-height: 150px; overflow-y: auto; background: var(--bg); border-radius: 8px; margin: 10px 0; padding: 5px; font-size: 0.85rem; }
+        .ai-result-item { padding: 5px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
         .ai-loading { color: var(--magic); font-weight: bold; text-align: center; padding: 10px; display: none; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-        /* RESPONSIVE TWEAKS */
+        /* RESPONSIVE */
         @media (max-width: 600px) {
             header { padding: 10px 15px; }
             h1.logo { font-size: 1.2rem; }
-            /* Compact buttons on phone */
             .btn-add span, .btn-step span, .btn-backup span, .btn-magic span { display: none; }
-            .btn-add::after { content: "+"; } 
-            .btn-step::after { content: "👣"; } 
-            .btn-backup::after { content: "💾"; }
-            .btn-magic::after { content: "✨"; }
-            .btn-add, .btn-step, .btn-backup, .btn-logout, .btn-magic { padding: 8px 12px; font-size: 1rem; }
-            
-            #user-display { display: none; } /* Hide email on small screens */
+            .btn-add::after { content: "+"; } .btn-step::after { content: "👣"; } 
+            .btn-backup::after { content: "💾"; } .btn-magic::after { content: "✨"; }
+            .btn-add, .btn-step, .btn-backup, .btn-logout, .btn-magic, .btn-theme { padding: 8px 12px; font-size: 1rem; }
+            #user-display { display: none; }
             .header-left { min-width: auto; }
             #search-input { width: 100px; }
         }
     </style>
 </head>
-<body>
+<!-- DEFAULT THEME SET HERE -->
+<body data-theme="beige">
 
     <div id="auth-overlay">
         <div class="auth-box">
             <h1>HORIZON</h1>
-            <p style="color:#7f8c8d; margin-bottom:30px; font-size: 0.9rem;">Strategic Life Planner</p>
+            <p style="color:var(--footstep); margin-bottom:30px; font-size: 0.9rem;">Strategic Life Planner</p>
             <input type="email" id="login-email" class="auth-input" placeholder="Email">
             <input type="password" id="login-pass" class="auth-input" placeholder="Password">
             <p id="auth-error" style="color:red; display:none; margin-top:10px;"></p>
@@ -198,7 +257,8 @@
             </label>
         </div>
         <div class="controls">
-            <span id="user-display" style="font-size:0.8rem; color:#7f8c8d; display:none;"></span>
+            <span id="user-display" style="font-size:0.8rem; color:var(--footstep); display:none;"></span>
+            <button onclick="toggleTheme()" class="btn-theme" title="Switch Theme">🎨</button>
             <button onclick="openMagicModal()" class="btn-magic" title="AI Strategic Plan">✨ <span>Magic Plan</span></button>
             <button onclick="exportData()" class="btn-backup" title="Backup Data"><span>Backup</span></button>
             <button onclick="openAddStepModal()" class="btn-step" title="Add Step"><span>Step</span></button>
@@ -246,7 +306,7 @@
             <div style="display:flex; justify-content:space-between; margin-top:20px;">
                 <button id="btn-delete" onclick="deleteFromModal()" style="background:#ffebee; color:red; display:none; padding:8px 12px;">Delete</button>
                 <div style="display:flex; gap:10px; margin-left:auto;">
-                    <button onclick="closeModal()" style="padding:8px 12px; background:#f1f2f6;">Cancel</button>
+                    <button onclick="closeModal()" style="padding:8px 12px; background:var(--bg); border:1px solid var(--border); color:var(--text);">Cancel</button>
                     <button onclick="saveEvent()" class="btn-add" style="padding:8px 16px;">Save</button>
                 </div>
             </div>
@@ -257,7 +317,7 @@
     <div id="magic-modal-overlay">
         <div class="modal">
             <h3 style="margin-top:0; color:var(--magic);">✨ AI Strategist</h3>
-            <p style="font-size:0.85rem; color:#666;">Enter a goal, and I'll build a timeline for you.</p>
+            <p style="font-size:0.85rem; color:var(--footstep);">Enter a goal, and I'll build a timeline for you.</p>
             <div class="form-group">
                 <label>Target Goal</label>
                 <input type="text" id="ai-goal" placeholder="e.g. Master Python, Clear NEET PG">
@@ -270,7 +330,7 @@
             <div id="ai-results" class="ai-result-list" style="display:none;"></div>
             
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
-                <button onclick="closeMagicModal()" style="padding:8px 12px; background:#f1f2f6;">Close</button>
+                <button onclick="closeMagicModal()" style="padding:8px 12px; background:var(--bg); border:1px solid var(--border); color:var(--text);">Close</button>
                 <button id="btn-generate" onclick="generatePlan()" class="btn-magic" style="padding:8px 16px;">Generate</button>
                 <button id="btn-apply-plan" onclick="applyPlan()" class="btn-add" style="display:none; padding:8px 16px;">Add All</button>
             </div>
@@ -305,6 +365,23 @@
 
         function getSafeDate(str) { if(!str) return new Date(); const p = str.split('-'); return new Date(p[0], p[1]-1, p[2]); }
 
+        // --- THEME LOGIC ---
+        const themes = ['beige', 'dark', 'blue'];
+        let currentThemeIndex = 0;
+
+        // Initialize Theme from Storage
+        const savedTheme = localStorage.getItem('horizon_theme') || 'beige';
+        document.body.setAttribute('data-theme', savedTheme);
+        currentThemeIndex = themes.indexOf(savedTheme);
+
+        window.toggleTheme = () => {
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            const newTheme = themes[currentThemeIndex];
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('horizon_theme', newTheme);
+        };
+
+        // --- AUTH ---
         window.handleLogin = async () => { try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch(e) { document.getElementById('auth-error').innerText = e.message; document.getElementById('auth-error').style.display='block'; } };
         window.handleRegister = async () => { try { await createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } catch(e) { document.getElementById('auth-error').innerText = e.message; document.getElementById('auth-error').style.display='block'; } };
         window.logout = () => { hasInitializedView = false; signOut(auth); };
@@ -354,11 +431,9 @@
                 
                 const data = await response.json();
                 const text = data.candidates[0].content.parts[0].text;
-                // Clean up markdown if Gemini adds it despite instructions
                 const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
                 generatedPlan = JSON.parse(cleanJson);
                 
-                // Render Preview
                 const listEl = document.getElementById('ai-results');
                 listEl.style.display = 'block';
                 listEl.innerHTML = generatedPlan.map(item => `
@@ -380,15 +455,9 @@
 
         window.applyPlan = async () => {
             if(!currentUser) return;
-            // Batch add logic
             const batchPromises = generatedPlan.map(item => 
                 addDoc(collection(db, "users", currentUser.uid, "events"), {
-                    title: item.title,
-                    date: item.date,
-                    type: item.type || 'normal',
-                    pos: item.pos || 'top',
-                    status: 'pending',
-                    createdAt: Date.now()
+                    title: item.title, date: item.date, type: item.type || 'normal', pos: item.pos || 'top', status: 'pending', createdAt: Date.now()
                 })
             );
             await Promise.all(batchPromises);
@@ -401,6 +470,7 @@
             document.getElementById('group-status').style.display = ['normal','flag','milestone','cloud'].includes(t) ? 'block' : 'none';
             document.getElementById('group-pos').style.display = t==='footstep'?'none':'block';
             document.getElementById('inp-title').placeholder = t==='footstep' ? "e.g. Read 5 pages" : "Event Title";
+            document.getElementById('lbl-title').innerText = t==='footstep' ? "What did you do?" : "Title";
         };
         window.openAddStepModal = () => { document.getElementById('inp-type').value='footstep'; window.handleTypeChange(); document.getElementById('inp-date').valueAsDate=new Date(); window.openModal(true); };
         window.openModal = (isStep=false) => {
@@ -431,7 +501,7 @@
             const search = document.getElementById('search-input').value.toLowerCase();
             const axis = document.querySelector('.axis-line');
             
-            document.querySelectorAll('.event-node').forEach(n => n.remove());
+            document.querySelectorAll('.event-node, .today-marker').forEach(n => n.remove());
             if(liveEvents.length===0) return;
 
             const fGroups = {}, stdEvents = [];
@@ -470,6 +540,16 @@
             const sideMargin = bufferPx / 2;
             axis.style.left = sideMargin + 'px';
             axis.style.right = sideMargin + 'px';
+
+            // TODAY MARKER
+            const today = new Date(); today.setHours(0,0,0,0);
+            const todayT = today.getTime();
+            const todayX = ((todayT - startT)/86400000 * pxDay) + sideMargin;
+            const marker = document.createElement('div');
+            marker.className = 'today-marker';
+            marker.style.left = todayX + 'px';
+            marker.innerHTML = `<div class="today-text">Today</div><div class="today-arrow"></div>`;
+            cvs.appendChild(marker);
 
             // COLLISION VARS
             const NODE_W = 140; 
@@ -544,22 +624,17 @@
         };
 
         // EVENT LISTENERS
-        // Wheel Interaction: Scroll Horizontal, Zoom with Ctrl
         viewport.addEventListener('wheel', e => {
-             // If Ctrl Pressed -> Zoom
              if (e.ctrlKey) {
                  e.preventDefault();
                  const d = e.deltaY > 0 ? 0.9 : 1.1; 
                  zoomScale = Math.max(0.001, Math.min(zoomScale * d, 50));
                  renderEvents();
              } else {
-                 // Standard Wheel -> Scroll Horizontal
-                 // Map vertical wheel delta to horizontal scroll
                  if (e.deltaX === 0 && e.deltaY !== 0) {
                      e.preventDefault();
                      viewport.scrollLeft += e.deltaY;
                  }
-                 // If it's a trackpad with horizontal capability, browser handles e.deltaX natively
              }
         }, { passive: false });
 
