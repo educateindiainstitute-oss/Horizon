@@ -22,7 +22,8 @@
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
             background-color: var(--bg); 
             margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
-            color: var(--text); touch-action: none; 
+            color: var(--text); 
+            /* Removed global touch-action: none to allow scrolling/panning */
         }
 
         /* --- UI OVERLAYS --- */
@@ -69,7 +70,9 @@
             flex-grow: 1; overflow-x: auto; position: relative; 
             background-image: radial-gradient(#dbe0e6 1px, transparent 1px); 
             background-size: 25px 25px; 
-            cursor: grab; touch-action: none;
+            cursor: grab; 
+            /* Allow panning but prevent browser back/forward gestures */
+            touch-action: pan-x pan-y;
             overscroll-behavior: none;
         }
         #timeline-viewport:active { cursor: grabbing; }
@@ -541,11 +544,56 @@
         };
 
         // EVENT LISTENERS
-        viewport.addEventListener('wheel', e => { e.preventDefault(); const d = e.deltaY>0?0.9:1.1; zoomScale = Math.max(0.001, Math.min(zoomScale*d, 50)); renderEvents(); }, {passive:false});
+        // Wheel Interaction: Scroll Horizontal, Zoom with Ctrl
+        viewport.addEventListener('wheel', e => {
+             // If Ctrl Pressed -> Zoom
+             if (e.ctrlKey) {
+                 e.preventDefault();
+                 const d = e.deltaY > 0 ? 0.9 : 1.1; 
+                 zoomScale = Math.max(0.001, Math.min(zoomScale * d, 50));
+                 renderEvents();
+             } else {
+                 // Standard Wheel -> Scroll Horizontal
+                 // Map vertical wheel delta to horizontal scroll
+                 if (e.deltaX === 0 && e.deltaY !== 0) {
+                     e.preventDefault();
+                     viewport.scrollLeft += e.deltaY;
+                 }
+                 // If it's a trackpad with horizontal capability, browser handles e.deltaX natively
+             }
+        }, { passive: false });
+
         viewport.addEventListener('touchstart', e => { if(e.touches.length===2) { initialPinchDist = Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY); initialZoom = zoomScale; } });
         viewport.addEventListener('touchmove', e => { if(e.touches.length===2) { e.preventDefault(); const d = Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY); zoomScale = Math.max(0.001, Math.min(initialZoom*(d/initialPinchDist), 50)); renderEvents(); } });
         window.addEventListener('resize', () => { if(liveEvents.length>0) renderEvents(); });
         window.addEventListener('orientationchange', () => { setTimeout(() => { hasInitializedView = false; renderEvents(); }, 200); });
+
+        // Mouse Drag to Pan
+        let isDragging = false;
+        let startX, scrollLeft;
+
+        viewport.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            viewport.classList.add('active'); // Optional for grabbing cursor
+            startX = e.pageX - viewport.offsetLeft;
+            scrollLeft = viewport.scrollLeft;
+            viewport.style.cursor = 'grabbing';
+        });
+        viewport.addEventListener('mouseleave', () => {
+            isDragging = false;
+            viewport.style.cursor = 'grab';
+        });
+        viewport.addEventListener('mouseup', () => {
+            isDragging = false;
+            viewport.style.cursor = 'grab';
+        });
+        viewport.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const x = e.pageX - viewport.offsetLeft;
+            const walk = (x - startX) * 1.5; // Scroll-fast multiplier
+            viewport.scrollLeft = scrollLeft - walk;
+        });
 
     </script>
 </body>
