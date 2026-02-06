@@ -11,7 +11,8 @@
             --secondary: #8f94fb; /* Sky */
             --danger: #ff5252;
             --stress: #ff9800; /* Sunset Orange */
-            --footstep: #95a5a6; /* Grey for progress steps */
+            --footstep: #7f8c8d; /* Grey for daily steps */
+            --milestone: #00b894; /* Teal for milestones */
             --bg: #f8f9fa;
             --surface: #ffffff;
             --text: #2c3e50;
@@ -26,10 +27,10 @@
             height: 100vh; 
             overflow: hidden; 
             color: var(--text); 
-            touch-action: none; /* Prevent default browser zooming */
+            touch-action: none; 
         }
 
-        /* --- AUTH SCREEN (Login) --- */
+        /* --- AUTH SCREEN --- */
         #auth-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to right, #4e54c8, #8f94fb);
@@ -39,58 +40,55 @@
         .auth-box {
             background: white; padding: 40px; border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
-            width: 100%; max-width: 380px; /* Responsive width */
-            text-align: center;
+            width: 100%; max-width: 380px; text-align: center;
         }
-        .auth-box h1 { 
-            color: var(--primary); margin-bottom: 5px; font-weight: 800; letter-spacing: 1px;
-        }
+        .auth-box h1 { color: var(--primary); margin-bottom: 5px; font-weight: 800; letter-spacing: 1px; }
         .auth-input {
             width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee;
-            border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none;
-            transition: 0.2s;
+            border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s;
         }
         .auth-input:focus { border-color: var(--secondary); }
         .auth-btn {
             width: 100%; padding: 12px; border: none; border-radius: 8px;
-            cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px;
-            transition: 0.2s;
+            cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: 0.2s;
         }
-        .btn-enter { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(78, 84, 200, 0.4); }
-        .btn-enter:hover { transform: translateY(-2px); }
+        .btn-enter { background: var(--primary); color: white; }
         .btn-register { background: white; color: var(--primary); border: 2px solid #eee; }
 
-        /* --- MAIN APP --- */
+        /* --- HEADER & CONTROLS --- */
         header {
-            background: var(--surface); padding: 15px 20px; display: flex;
+            background: var(--surface); padding: 10px 20px; display: flex;
             justify-content: space-between; align-items: center;
             box-shadow: 0 2px 20px rgba(0,0,0,0.05); z-index: 100;
             flex-wrap: wrap; gap: 10px;
         }
+        .header-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         h1.logo { 
-            margin: 0; font-size: 1.5rem; color: var(--primary); 
-            font-weight: 800; letter-spacing: -0.5px;
-            display: flex; align-items: center; gap: 10px;
+            margin: 0; font-size: 1.4rem; color: var(--primary); 
+            font-weight: 800; display: flex; align-items: center; gap: 8px;
         }
-        .logo-icon {
-            width: 20px; height: 20px; background: linear-gradient(45deg, var(--stress), var(--danger));
-            border-radius: 50%; display: inline-block;
+        
+        /* Search Bar */
+        .search-wrapper { position: relative; }
+        #search-input {
+            padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd;
+            font-size: 0.85rem; width: 150px; outline: none; transition: width 0.3s;
         }
+        #search-input:focus { width: 200px; border-color: var(--primary); }
 
         .controls { display: flex; gap: 8px; align-items: center; }
-        button { border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size:0.9rem;}
-        .btn-add { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(78, 84, 200, 0.3); }
-        .btn-step { background: var(--footstep); color: white; box-shadow: 0 4px 10px rgba(149, 165, 166, 0.3); }
-        .btn-logout { background: #ffebee; color: var(--danger); font-size: 0.8rem; }
+        button { border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size:0.85rem;}
+        .btn-add { background: var(--primary); color: white; }
+        .btn-step { background: #95a5a6; color: white; }
+        .btn-backup { background: #e0f7fa; color: #006064; }
+        .btn-logout { background: #ffebee; color: var(--danger); }
 
         /* --- TIMELINE --- */
         #timeline-viewport { 
             flex-grow: 1; overflow-x: auto; position: relative; 
             background-image: radial-gradient(#dbe0e6 1px, transparent 1px); 
             background-size: 25px 25px; 
-            cursor: grab;
-            touch-action: pan-x pan-y; /* Allow scrolling but handle pinch manually */
-            -webkit-overflow-scrolling: touch; 
+            cursor: grab; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; 
         }
         #timeline-viewport:active { cursor: grabbing; }
 
@@ -101,161 +99,115 @@
             background: linear-gradient(to right, var(--primary), var(--secondary)); 
             border-radius: 2px; 
         }
-        .axis-line::after { 
-            content: ''; position: absolute; right: -14px; top: -8px; 
-            border-left: 20px solid var(--secondary); 
-            border-top: 10px solid transparent; border-bottom: 10px solid transparent; 
-        }
 
         /* --- EVENT NODES --- */
         .event-node { 
-            position: absolute; 
-            transform-origin: center bottom;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            cursor: pointer; 
-            transition: transform 0.1s linear, left 0.1s linear;
-            z-index: 10; 
+            position: absolute; transform-origin: center bottom;
+            display: flex; flex-direction: column; align-items: center; 
+            cursor: pointer; transition: transform 0.1s linear, left 0.1s linear; z-index: 10; 
         }
         .event-node:hover { z-index: 100 !important; filter: brightness(1.1); }
         
         .content-box {
-            background: white; padding: 10px 18px; border-radius: 12px;
-            border: 1px solid rgba(0,0,0,0.05); text-align: center; min-width: 100px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            white-space: nowrap; 
+            background: white; padding: 8px 14px; border-radius: 10px;
+            border: 1px solid rgba(0,0,0,0.05); text-align: center; min-width: 90px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); white-space: nowrap; 
         }
-        .date-label { font-size: 0.75rem; color: #95a5a6; display: block; margin-top: 4px; font-weight: 500; }
-        .title-label { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+        .date-label { font-size: 0.7rem; color: #95a5a6; display: block; margin-top: 2px; font-weight: 500; }
+        .title-label { font-weight: 700; font-size: 0.9rem; color: var(--text); }
+        .status-check { color: #2ecc71; margin-left: 4px; font-size: 0.8rem; }
 
-        /* Positioning Base Styles */
         .pos-top { bottom: 50%; transform-origin: center bottom; } 
         .pos-bottom { top: 50%; transform-origin: center top; }
-        /* Footsteps are centered on the line */
         .pos-center { top: 50%; transform-origin: center center; }
 
         .tick { width: 3px; background: #cbd5e0; margin: 0; }
         
-        /* Special Types */
-        .type-flag .content-box { 
-            background: var(--danger); color: white; border: none; 
-            box-shadow: 0 10px 20px rgba(255, 82, 82, 0.3);
-        }
+        /* Types */
+        .type-flag .content-box { background: var(--danger); color: white; border: none; }
         .type-flag .date-label { color: rgba(255,255,255,0.8); }
         .type-flag .pole { width: 4px; background: var(--danger); margin: 0 auto; border-radius: 2px; }
-        .type-flag { top: 30%; transform: translateX(-10%); transform-origin: center bottom; }
+        
+        .type-cloud .content-box { background: #fff8e1; border: 2px solid var(--stress); color: var(--stress); border-radius: 40px; }
+        
+        .type-milestone .content-box { border: 2px solid var(--milestone); color: var(--milestone); }
+        .type-milestone .diamond { width: 12px; height: 12px; background: var(--milestone); transform: rotate(45deg); margin-top: -6px; }
 
-        .type-cloud .content-box {
-            background: #fff8e1; border: 2px solid var(--stress); color: var(--stress);
-            border-radius: 40px; padding: 15px 30px;
-        }
-
-        /* FOOTSTEPS (New) */
+        /* FOOTSTEPS */
         .footstep-dot {
-            width: 10px; height: 10px;
-            background: var(--footstep);
-            border: 2px solid white;
-            border-radius: 50%;
-            box-shadow: 0 0 0 2px var(--footstep);
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 5;
+            width: 10px; height: 10px; background: var(--footstep);
+            border: 2px solid white; border-radius: 50%;
+            box-shadow: 0 0 0 1px var(--footstep);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        .footstep-label-date {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            font-size: 0.6rem; color: #95a5a6; white-space: nowrap; font-weight: 600;
         }
         .footstep-box {
-            background: white;
-            border: 2px solid var(--footstep);
-            border-radius: 12px;
-            padding: 10px 15px;
-            text-align: left;
-            min-width: 140px;
+            background: white; border: 1px solid var(--footstep); border-radius: 8px;
+            padding: 8px 12px; text-align: left; min-width: 140px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            /* Positioning relative to the lane logic */
         }
-        .footstep-list {
-            margin: 0; padding-left: 20px; list-style-type: disc;
-        }
-        .footstep-list li {
-            font-size: 0.85rem; margin-bottom: 2px; color: var(--text); white-space: normal;
-        }
+        .footstep-list { margin: 0; padding-left: 18px; list-style-type: disc; }
+        .footstep-list li { font-size: 0.8rem; margin-bottom: 2px; color: var(--text); white-space: normal; }
 
         /* Modal */
         #modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; 
-            z-index: 2000; backdrop-filter: blur(2px);
-            padding: 20px; box-sizing: border-box; 
+            z-index: 2000; backdrop-filter: blur(2px); padding: 20px; 
         }
-        .modal { 
-            background: white; padding: 30px; border-radius: 15px; 
-            width: 100%; max-width: 350px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
-        }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.85rem; color: #7f8c8d; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; outline: none; transition: 0.2s;}
-        input:focus, select:focus { border-color: var(--primary); }
+        .modal { background: white; padding: 25px; border-radius: 15px; width: 100%; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 0.8rem; color: #7f8c8d; }
+        input, select { width: 100%; padding: 10px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; outline: none; }
         
         /* Filters */
-        .filter-switch {
-            display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; color: #555;
-            background: #eee; padding: 6px 12px; border-radius: 20px; cursor: pointer;
-        }
-        .filter-switch input { width: auto; margin: 0; }
+        .filter-switch { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #555; background: #eee; padding: 6px 12px; border-radius: 20px; cursor: pointer; }
 
-        /* --- RESPONSIVE BREAKPOINTS --- */
+        /* Responsive */
         @media (max-width: 600px) {
-            header { padding: 10px 15px; }
-            h1.logo { font-size: 1.2rem; }
-            .btn-add span, .btn-step span { display: none; }
-            .btn-add::after { content: "+"; }
-            .btn-step::after { content: "👣"; }
-            .btn-add, .btn-step { font-size: 1.2rem; padding: 5px 12px; line-height: 1; }
-            #user-display { display: none; }
-            .auth-box { padding: 30px 20px; }
-            .content-box { padding: 8px 12px; min-width: auto; }
-            .title-label { font-size: 0.85rem; }
-            .date-label { font-size: 0.65rem; }
-            .type-cloud .content-box { padding: 10px 20px; border-radius: 25px; }
+            header { padding: 10px; }
+            h1.logo { font-size: 1.1rem; }
+            .btn-add span, .btn-step span, .btn-backup span { display: none; }
+            .btn-add::after { content: "+"; } .btn-step::after { content: "👣"; } .btn-backup::after { content: "💾"; }
+            #search-input { width: 100px; } #search-input:focus { width: 140px; }
+            .content-box { padding: 6px 10px; min-width: auto; }
         }
-
     </style>
 </head>
 <body>
 
-    <!-- AUTH LOGIN SCREEN -->
     <div id="auth-overlay">
         <div class="auth-box">
             <h1>HORIZON</h1>
-            <p style="color:#7f8c8d; margin-bottom:30px; font-size: 0.9rem;">The strategic view of your life.</p>
-            
-            <input type="email" id="login-email" class="auth-input" placeholder="Email Address">
+            <p style="color:#7f8c8d; margin-bottom:30px; font-size: 0.9rem;">Strategic Life Planner</p>
+            <input type="email" id="login-email" class="auth-input" placeholder="Email">
             <input type="password" id="login-pass" class="auth-input" placeholder="Password">
             <p id="auth-error" style="color:#e74c3c; font-size:0.8rem; display:none; margin-top:10px;"></p>
-            
-            <button onclick="handleLogin()" class="auth-btn btn-enter">Login to Horizon</button>
-            <button onclick="handleRegister()" class="auth-btn btn-register">Create Account</button>
+            <button onclick="handleLogin()" class="auth-btn btn-enter">Login</button>
+            <button onclick="handleRegister()" class="auth-btn btn-register">Register</button>
         </div>
     </div>
 
-    <!-- MAIN APPLICATION -->
     <header>
-        <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
-            <h1 class="logo"><span class="logo-icon"></span> HORIZON</h1>
-            
-            <!-- Filters -->
+        <div class="header-left">
+            <h1 class="logo">HORIZON</h1>
+            <div class="search-wrapper">
+                <input type="text" id="search-input" placeholder="Search..." onkeyup="renderEvents()">
+            </div>
             <label class="filter-switch">
-                <input type="checkbox" id="filter-major" checked onchange="renderEvents()"> 
-                Show Major Goals
+                <input type="checkbox" id="filter-major" checked onchange="renderEvents()"> Major
             </label>
         </div>
 
         <div class="controls">
-            <span id="user-display" style="font-size:0.8rem; color:#7f8c8d; margin-right:10px; font-weight: 600;"></span>
-            <button onclick="openAddStepModal()" class="btn-step" title="Log Daily Step">Add Step</button>
+            <span id="user-display" style="font-size:0.8rem; color:#7f8c8d; font-weight: 600; display:none;"></span>
+            <button onclick="exportData()" class="btn-backup" title="Backup Data">Backup</button>
+            <button onclick="openAddStepModal()" class="btn-step" title="Log Step">Step</button>
             <button onclick="openModal()" class="btn-add" title="Add Event">Add</button>
-            <button onclick="logout()" class="btn-logout">Logout</button>
+            <button onclick="logout()" class="btn-logout">Exit</button>
         </div>
     </header>
 
@@ -268,52 +220,55 @@
     <!-- ADD/EDIT MODAL -->
     <div id="modal-overlay">
         <div class="modal">
-            <h3 id="modal-title" style="margin-top:0; color: var(--primary);">New Event</h3>
+            <h3 id="modal-title" style="margin-top:0; color: var(--primary);">Event</h3>
             
             <div class="form-group" id="group-type">
                 <label>Type</label>
                 <select id="inp-type" onchange="handleTypeChange()">
-                    <option value="footstep">👣 Daily Step (Progress)</option>
+                    <option value="footstep">👣 Daily Progress Log</option>
                     <option value="normal">📌 Routine Task</option>
-                    <option value="cloud">☁️ Stressor / Exam</option>
-                    <option value="flag">🚩 Horizon Goal</option>
+                    <option value="cloud">☁️ Exam / Stressor</option>
+                    <option value="flag">🚩 Goal / Target</option>
+                    <option value="milestone">💎 Milestone</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label id="lbl-title">Title</label>
-                <input type="text" id="inp-title" placeholder="What did you do today?">
+                <input type="text" id="inp-title" placeholder="Details...">
             </div>
 
             <div class="form-group"><label>Date</label><input type="date" id="inp-date"></div>
             
+            <div class="form-group" id="group-status" style="display:none;">
+                <label>Status</label>
+                <select id="inp-status">
+                    <option value="pending">⏳ Pending</option>
+                    <option value="done">✅ Completed</option>
+                </select>
+            </div>
+
             <div class="form-group" id="group-pos">
                 <label>Axis Position</label>
-                <select id="inp-pos"><option value="top">Top (Dates/Subject)</option><option value="bottom">Bottom (Action/Output)</option></select>
+                <select id="inp-pos"><option value="top">Top</option><option value="bottom">Bottom</option></select>
             </div>
             
-            <!-- Footer with Delete Option -->
-            <div style="display:flex; justify-content:space-between; margin-top:20px; align-items:center;">
-                <!-- Delete Button (Hidden by default) -->
-                <button id="btn-delete" onclick="deleteFromModal()" style="background:#ffebee; color:var(--danger); display:none; padding:8px 12px; font-size:0.8rem;">Delete</button>
-                
+            <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                <button id="btn-delete" onclick="deleteFromModal()" style="background:#ffebee; color:var(--danger); display:none;">Delete</button>
                 <div style="display:flex; gap:10px; margin-left:auto;">
                     <button onclick="closeModal()" style="background:#f1f2f6; color:#333;">Cancel</button>
-                    <button id="btn-save" onclick="saveEvent()" class="btn-add" style="font-size: 0.9rem; padding: 8px 16px;">Add</button>
+                    <button id="btn-save" onclick="saveEvent()" class="btn-add">Save</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- FIREBASE SDKs & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { initializeFirestore, memoryLocalCache, collection, addDoc, updateDoc, query, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ==========================================================
-        //  YOUR SPECIFIC CONFIGURATION
-        // ==========================================================
+        // CONFIGURATION
         const firebaseConfig = {
           apiKey: "AIzaSyD3VRih9GhCX0geYDrKxz2OkRnQymFBHLA",
           authDomain: "horizon-184d1.firebaseapp.com",
@@ -325,99 +280,89 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = initializeFirestore(app, {
-            localCache: memoryLocalCache()
-        });
+        const db = initializeFirestore(app, { localCache: memoryLocalCache() });
 
         let currentUser = null;
         let liveEvents = []; 
         let editingId = null; 
-
-        // --- ZOOM VARIABLES ---
         let zoomScale = 1.0;
         let initialPinchDist = 0;
         let initialZoom = 1.0;
         let hasInitializedView = false;
         const viewport = document.getElementById('timeline-viewport');
 
-        // ---------------- AUTHENTICATION ----------------
+        // AUTH
         window.handleLogin = async () => {
-            try {
-                await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value);
-            } catch (error) {
-                document.getElementById('auth-error').style.display = 'block';
-                document.getElementById('auth-error').innerText = cleanError(error.message);
-            }
+            try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); }
+            catch (e) { document.getElementById('auth-error').innerText = e.message; document.getElementById('auth-error').style.display = 'block'; }
         };
-
         window.handleRegister = async () => {
-            try {
-                await createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value);
-            } catch (error) {
-                document.getElementById('auth-error').style.display = 'block';
-                document.getElementById('auth-error').innerText = cleanError(error.message);
-            }
+            try { await createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); }
+            catch (e) { document.getElementById('auth-error').innerText = e.message; document.getElementById('auth-error').style.display = 'block'; }
         };
-
         window.logout = () => { hasInitializedView = false; signOut(auth); };
-        function cleanError(msg) { return msg.replace("Firebase: ", "").replace("auth/", "").replace(/-/g, " "); }
 
         onAuthStateChanged(auth, (user) => {
-            const authScreen = document.getElementById('auth-overlay');
             if (user) {
                 currentUser = user;
-                authScreen.style.display = 'none';
+                document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('user-display').innerText = user.email;
                 listenToEvents(user.uid);
             } else {
                 currentUser = null;
-                authScreen.style.display = 'flex';
-                liveEvents = [];
-                renderEvents();
+                document.getElementById('auth-overlay').style.display = 'flex';
+                liveEvents = []; renderEvents();
             }
         });
 
-        // ---------------- DATABASE LOGIC ----------------
+        // DB & EXPORT
         function listenToEvents(uid) {
-            const q = query(collection(db, "users", uid, "events"));
-            onSnapshot(q, (snapshot) => {
+            onSnapshot(query(collection(db, "users", uid, "events")), (snapshot) => {
                 liveEvents = [];
-                snapshot.forEach((doc) => {
-                    liveEvents.push({ id: doc.id, ...doc.data() });
-                });
+                snapshot.forEach((doc) => liveEvents.push({ id: doc.id, ...doc.data() }));
                 renderEvents();
             });
         }
 
-        // ---------------- MODAL LOGIC ----------------
+        window.exportData = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(liveEvents));
+            const node = document.createElement('a');
+            node.setAttribute("href", dataStr);
+            node.setAttribute("download", `horizon_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(node); node.click(); node.remove();
+        };
+
+        // MODAL LOGIC
         window.handleTypeChange = () => {
             const type = document.getElementById('inp-type').value;
+            const isTask = ['normal', 'flag', 'milestone', 'cloud'].includes(type);
+            
+            document.getElementById('group-status').style.display = isTask ? 'block' : 'none';
+            document.getElementById('group-pos').style.display = type === 'footstep' ? 'none' : 'block';
+            
             if (type === 'footstep') {
                 document.getElementById('lbl-title').innerText = "What did you do?";
-                document.getElementById('inp-title').placeholder = "e.g. Completed 50 MCQs";
-                document.getElementById('group-pos').style.display = 'none'; // Auto-positioned
+                document.getElementById('inp-title').placeholder = "e.g. Read Chapter 4";
             } else {
                 document.getElementById('lbl-title').innerText = "Title";
-                document.getElementById('inp-title').placeholder = "e.g. Ophthalmology Exam";
-                document.getElementById('group-pos').style.display = 'block';
+                document.getElementById('inp-title').placeholder = "Event Name";
             }
         };
 
         window.openAddStepModal = () => {
             document.getElementById('inp-type').value = 'footstep';
             window.handleTypeChange();
-            // Default to today
             document.getElementById('inp-date').valueAsDate = new Date();
             window.openModal(true);
         };
 
         window.openModal = (isStep = false) => {
             if (!isStep) {
-                // Reset to normal add
                 document.getElementById('inp-title').value = '';
                 document.getElementById('inp-date').value = '';
                 document.getElementById('inp-type').value = 'normal';
                 document.getElementById('inp-pos').value = 'top';
+                document.getElementById('inp-status').value = 'pending';
                 window.handleTypeChange();
             } else {
                 document.getElementById('inp-title').value = '';
@@ -429,19 +374,15 @@
             document.getElementById('modal-overlay').style.display = 'flex';
         };
 
-        window.editEvent = (id, isGroup = false) => {
-            // Logic to edit grouping is complex, so we simply prevent editing group container
-            // Use specific item edit if needed. For simplicity, we assume individual item edit logic here.
-            // If it's a footstep, we find the specific event.
+        window.editEvent = (id) => {
             const ev = liveEvents.find(e => e.id === id);
             if (!ev) return;
-
             document.getElementById('inp-title').value = ev.title;
             document.getElementById('inp-date').value = ev.date;
             document.getElementById('inp-type').value = ev.type;
             document.getElementById('inp-pos').value = ev.pos || 'top';
+            document.getElementById('inp-status').value = ev.status || 'pending';
             window.handleTypeChange();
-
             editingId = id;
             document.getElementById('modal-title').innerText = "Edit";
             document.getElementById('btn-save').innerText = "Update";
@@ -453,132 +394,113 @@
 
         window.saveEvent = async () => {
             if (!currentUser) return;
-            const title = document.getElementById('inp-title').value;
-            const date = document.getElementById('inp-date').value;
-            const type = document.getElementById('inp-type').value;
-            const pos = document.getElementById('inp-pos').value;
+            const data = {
+                title: document.getElementById('inp-title').value,
+                date: document.getElementById('inp-date').value,
+                type: document.getElementById('inp-type').value,
+                pos: document.getElementById('inp-pos').value,
+                status: document.getElementById('inp-status').value
+            };
+            if(!data.title || !data.date) return alert("Fill all fields");
 
-            if(!title || !date) return alert("Please fill details.");
-
-            if (editingId) {
-                const eventRef = doc(db, "users", currentUser.uid, "events", editingId);
-                await updateDoc(eventRef, { title, date, type, pos });
-            } else {
-                await addDoc(collection(db, "users", currentUser.uid, "events"), {
-                    title, date, type, pos, createdAt: Date.now()
-                });
-            }
+            if (editingId) await updateDoc(doc(db, "users", currentUser.uid, "events", editingId), data);
+            else await addDoc(collection(db, "users", currentUser.uid, "events"), { ...data, createdAt: Date.now() });
             closeModal();
         };
 
         window.deleteFromModal = async () => {
-            if (editingId && confirm("Delete this?")) {
+            if (editingId && confirm("Delete?")) {
                 await deleteDoc(doc(db, "users", currentUser.uid, "events", editingId));
                 closeModal();
             }
         };
 
-        // ---------------- RENDER ENGINE ----------------
+        // RENDER
         window.renderEvents = () => {
             const canvas = document.getElementById('arrow-canvas');
             const showMajor = document.getElementById('filter-major').checked;
+            const searchText = document.getElementById('search-input').value.toLowerCase();
             
-            document.querySelectorAll('.event-node').forEach(o => o.remove()); // Clear
+            document.querySelectorAll('.event-node').forEach(o => o.remove());
 
             if (liveEvents.length === 0) return;
 
-            // PRE-PROCESS FOOTSTEPS (GROUP BY DATE)
+            // GROUP FOOTSTEPS & FILTER
             const footstepGroups = {};
             const standardEvents = [];
             
             liveEvents.forEach(ev => {
+                if (!ev.title.toLowerCase().includes(searchText)) return; // Search Filter
+
                 if (ev.type === 'footstep') {
                     if (!footstepGroups[ev.date]) footstepGroups[ev.date] = [];
                     footstepGroups[ev.date].push(ev);
                 } else {
-                    if ((ev.type === 'flag' || ev.type === 'cloud') && !showMajor) return; // Filter
+                    if ((ev.type === 'flag' || ev.type === 'cloud') && !showMajor) return;
                     standardEvents.push(ev);
                 }
             });
 
-            // CREATE RENDER LIST
-            let renderList = [...standardEvents];
-            
-            // Add Footstep Groups
+            const renderList = [...standardEvents];
             Object.keys(footstepGroups).forEach(date => {
-                renderList.push({
-                    type: 'footstep-group',
-                    date: date,
-                    items: footstepGroups[date],
-                    pos: 'bottom' // Logic uses bottom lanes
-                });
+                renderList.push({ type: 'footstep-group', date: date, items: footstepGroups[date], pos: 'bottom' });
             });
-
             renderList.sort((a,b) => new Date(a.date) - new Date(b.date));
 
-            // CALCULATE SCALES
+            if(renderList.length === 0) return;
+
             const startDate = new Date(renderList[0].date).getTime();
             const lastDate = new Date(renderList[renderList.length-1].date).getTime();
             const totalDays = (lastDate - startDate) / 86400000; 
 
-            // Auto-fit on first load
             if (!hasInitializedView && totalDays > 0) {
-                const requiredWidth = window.innerWidth - 100;
-                const fitZoom = requiredWidth / (totalDays * 5);
-                zoomScale = Math.min(1.0, Math.max(0.05, fitZoom));
+                zoomScale = Math.min(1.0, Math.max(0.05, (window.innerWidth - 100) / (totalDays * 5)));
                 hasInitializedView = true;
             }
 
             const isMobile = window.innerWidth < 600;
             const pxPerDay = (isMobile ? 3 : 5) * zoomScale;
-            const width = Math.max(window.innerWidth, (totalDays * pxPerDay) + 400);
-            canvas.style.width = width + "px";
+            canvas.style.width = Math.max(window.innerWidth, (totalDays * pxPerDay) + 400) + "px";
 
-            // Semantic Scaling
             let nodeScale = Math.min(1, Math.max(0.2, zoomScale * 1.5));
             if (zoomScale < 0.2) nodeScale = 0.3;
 
-            // Lanes Logic
-            const topLanes = [];
-            const bottomLanes = [];
-            const nodeBaseWidth = 140;
-            const scaledNodeWidth = nodeBaseWidth * nodeScale;
+            const topLanes = []; const bottomLanes = [];
+            const scaledNodeWidth = 140 * nodeScale;
 
             renderList.forEach(ev => {
                 const evTime = new Date(ev.date).getTime();
-                const leftOffset = isMobile ? 50 : 100;
-                const left = (totalDays > 0) ? ((evTime - startDate) / 86400000 * pxPerDay) + leftOffset : leftOffset;
+                const left = ((evTime - startDate) / 86400000 * pxPerDay) + (isMobile ? 50 : 100);
 
-                // --- FOOTSTEP RENDERING ---
                 if (ev.type === 'footstep-group') {
-                    // Create Container
                     const node = document.createElement('div');
-                    node.className = 'event-node type-footstep-group pos-center'; // Center on line
+                    node.className = 'event-node type-footstep-group pos-center';
                     node.style.left = left + "px";
+                    node.style.transform = `translate(-50%, -50%)`; // Exact center on line
                     
-                    // The Dot (Always visible)
+                    // The Dot
                     const dot = document.createElement('div');
                     dot.className = 'footstep-dot';
-                    dot.title = `${ev.items.length} steps on ${ev.date}`;
                     node.appendChild(dot);
 
-                    // The Content Box (Only visible if zoomed in enough OR hover)
-                    // Hides when zoomed out (< 0.4 scale)
+                    // The Date Label (Visible always)
+                    if (zoomScale > 0.1) {
+                        const dateLbl = document.createElement('div');
+                        dateLbl.className = 'footstep-label-date';
+                        dateLbl.innerText = new Date(ev.date).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+                        node.appendChild(dateLbl);
+                    }
+
+                    // The Box (Zoomed In)
                     if (zoomScale > 0.4) {
                         const box = document.createElement('div');
                         box.className = 'footstep-box';
                         
-                        // Lane Logic for Box Position (It hangs below line)
-                        // Use bottom lanes
-                        const currentLeftEdge = left - (scaledNodeWidth/2);
-                        let laneIndex = 0;
-                        while (bottomLanes[laneIndex] !== undefined && bottomLanes[laneIndex] > currentLeftEdge) {
-                            laneIndex++;
-                        }
-                        bottomLanes[laneIndex] = left + (scaledNodeWidth/2) + 10;
+                        const currentLeft = left - (scaledNodeWidth/2);
+                        let lane = 0; while (bottomLanes[lane] > currentLeft) lane++;
+                        bottomLanes[lane] = left + (scaledNodeWidth/2) + 10;
                         
-                        const topOffset = 20 + (laneIndex * 60 * nodeScale); // Start 20px below line
-                        box.style.marginTop = `${topOffset}px`;
+                        box.style.marginTop = `${30 + (lane * 60 * nodeScale)}px`;
                         box.style.transform = `translateX(-50%) scale(${nodeScale})`;
                         box.style.transformOrigin = 'top center';
 
@@ -587,49 +509,44 @@
                         ev.items.forEach(item => {
                             const li = document.createElement('li');
                             li.innerText = item.title;
-                            li.onclick = (e) => { e.stopPropagation(); window.editEvent(item.id); }; // Click bullet to edit
+                            li.onclick = (e) => { e.stopPropagation(); window.editEvent(item.id); };
                             li.style.cursor = "pointer";
-                            li.title = "Click to edit/delete this step";
                             ul.appendChild(li);
                         });
                         box.appendChild(ul);
                         node.appendChild(box);
                     }
-
                     canvas.appendChild(node);
-                    return; // Done with footstep
+                    return;
                 }
 
-                // --- STANDARD EVENT RENDERING ---
-                const currentLeftEdge = left - (scaledNodeWidth / 2);
+                // Standard Events
+                const currentLeft = left - (scaledNodeWidth/2);
                 const lanes = ev.pos === 'top' ? topLanes : bottomLanes;
-                let laneIndex = 0;
-                while (lanes[laneIndex] !== undefined && lanes[laneIndex] > currentLeftEdge) { laneIndex++; }
-                lanes[laneIndex] = left + (scaledNodeWidth / 2) + (10 * nodeScale); 
+                let lane = 0; while (lanes[lane] > currentLeft) lane++;
+                lanes[lane] = left + (scaledNodeWidth/2) + (10 * nodeScale); 
 
-                const baseHeight = 25;
-                const stepHeight = 65 * nodeScale; 
-                const totalHeight = baseHeight + (laneIndex * stepHeight);
+                const baseH = 25; const stepH = 65 * nodeScale; 
+                const totalH = baseH + (lane * stepH);
 
                 const node = document.createElement('div');
                 node.className = `event-node type-${ev.type} ${ev.pos === 'top' ? 'pos-top' : 'pos-bottom'}`;
                 node.style.left = left + "px";
                 node.style.transform = `translateX(-50%) scale(${nodeScale})`;
-                
-                node.onclick = (e) => { window.editEvent(ev.id); };
+                node.onclick = () => window.editEvent(ev.id);
 
                 const dateStr = new Date(ev.date).toLocaleDateString('en-GB', {day:'numeric', month:'short'});
-                let html = '';
+                const check = ev.status === 'done' ? '<span class="status-check">✔</span>' : '';
                 
+                let html = '';
                 if (ev.type === 'flag') {
-                    const poleHeight = (120 * nodeScale) + (laneIndex * stepHeight);
-                    html = `<div class="content-box"><span class="title-label">${ev.title}</span><br><span class="date-label">${dateStr}</span></div><div class="pole" style="height:${poleHeight}px"></div>`;
-                } else if (ev.type === 'cloud') {
-                    html = `<div class="content-box"><span class="title-label">${ev.title}</span></div><div class="tick" style="height:${totalHeight}px"></div>`;
+                    const h = (120 * nodeScale) + (lane * stepH);
+                    html = `<div class="content-box"><span class="title-label">${ev.title}${check}</span><br><span class="date-label">${dateStr}</span></div><div class="pole" style="height:${h}px"></div>`;
+                } else if (ev.type === 'milestone') {
+                     html = `<div class="content-box"><span class="title-label">${ev.title}${check}</span></div><div class="diamond"></div><div class="tick" style="height:${totalH}px"></div>`;
                 } else {
-                    const content = `<div class="content-box"><span class="title-label">${ev.title}</span><br><span class="date-label">${dateStr}</span></div>`;
-                    if (ev.pos === 'top') html = `${content}<div class="tick" style="height:${totalHeight}px"></div>`;
-                    else html = `<div class="tick" style="height:${totalHeight}px"></div>${content}`;
+                    const content = `<div class="content-box"><span class="title-label">${ev.title}${check}</span><br><span class="date-label">${dateStr}</span></div>`;
+                    html = ev.pos === 'top' ? `${content}<div class="tick" style="height:${totalH}px"></div>` : `<div class="tick" style="height:${totalH}px"></div>${content}`;
                 }
 
                 node.innerHTML = html;
@@ -637,26 +554,10 @@
             });
         };
 
-        // --- ZOOM GESTURE ---
-        viewport.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                initialZoom = zoomScale;
-            }
-        });
-
-        viewport.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2) {
-                e.preventDefault(); 
-                const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                const ratio = dist / initialPinchDist;
-                const newZoom = initialZoom * ratio;
-                zoomScale = Math.max(0.01, Math.min(newZoom, 50)); 
-                renderEvents();
-            }
-        });
-
-        window.addEventListener('resize', () => { if (liveEvents.length > 0) renderEvents(); });
+        // ZOOM GESTURES
+        viewport.addEventListener('touchstart', (e) => { if(e.touches.length===2) { initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); initialZoom = zoomScale; } });
+        viewport.addEventListener('touchmove', (e) => { if(e.touches.length===2) { e.preventDefault(); const d = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); zoomScale = Math.max(0.01, Math.min(initialZoom * (d/initialPinchDist), 50)); renderEvents(); } });
+        window.addEventListener('resize', () => { if(liveEvents.length>0) renderEvents(); });
 
     </script>
 </body>
